@@ -11,7 +11,6 @@ interface Tool {
   };
 }
 
-
 const apiBase = "http://localhost:8080/api/";
 
 export default function HomePage() {
@@ -37,21 +36,30 @@ export default function HomePage() {
   }, [token]);
 
   async function fetchTools() {
+    if (!token) return;
+  
     const res = await fetch(apiBase + "tools", {
       headers: {
         "Authorization": `Bearer ${token}`,
       },
     });
+  
     const data = await res.json();
     console.log("TOOLS API RESPONSE:", data);
-
+  
+    if (!Array.isArray(data)) {
+      console.error("Fel vid hämtning av tools:", data);
+      return;
+    }
+  
     setTools(data);
   }
+  
 
   async function authenticate() {
     try {
       const res = await fetch(
-        apiBase + (isRegistration ? "auth/register" : "auth/login"),
+        apiBase + (isRegistration ? "users/register" : "users/login"),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -59,6 +67,7 @@ export default function HomePage() {
         }
       );
       const data = await res.json();
+      console.log("AUTH RESPONSE:", data)
       if (data.token) {
         localStorage.setItem("token", data.token);
         setToken(data.token);
