@@ -10,11 +10,12 @@ npm install
 Om du inte har postgresql:
 
 ```bash
+cd ../backend
 brew install postgresql@14
 brew services start postgresql@14
 ```
 
-Skapa sedane en databas:
+Skapa sedan en databas (från backend mappen):
 ```bash
 createdb rentify
 ```
@@ -25,7 +26,7 @@ DATABASE_URL="postgresql://<användare>@localhost:5432/rentify"
 JWT_SECRET="hemligt-super-lösenord"
 ```
 
-För att öppna databasen visuellt kan du använda:
+För att öppna databasen visuellt kan du köra från backend mappen:
 ```bash
 npx prisma studio
 ```
