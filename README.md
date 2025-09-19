@@ -12,7 +12,6 @@ Om du inte har postgresql:
 ```bash
 brew install postgresql@14
 brew services start postgresql@14
-createdb rentify
 ```
 
 Skapa sedane en databas:
@@ -43,6 +42,14 @@ npm run dev
 ```
 Nu körs frontend på port
 //localhost:3000
+
+Ändringar i databasen:
+
+När du har ändrat något i databasen (schema.prisma) behöver du köra en 
+
+```bash
+npx prisma migrate dev --name <beskrivande namn på ändringen>
+```
 
 
 
