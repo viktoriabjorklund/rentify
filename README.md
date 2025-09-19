@@ -18,12 +18,18 @@ brew services start postgresql@14
 Skapa sedan en databas (från backend mappen):
 ```bash
 createdb rentify
+
 ```
 Skapa filen backend/.env med detta innehåll:
 
 ```bash
 DATABASE_URL="postgresql://<användare>@localhost:5432/rentify"
 JWT_SECRET="hemligt-super-lösenord"
+```
+
+Sedan kör du första migrationen:
+```bash
+npx prisma migrate dev --name init
 ```
 
 För att öppna databasen visuellt kan du köra från backend mappen:
