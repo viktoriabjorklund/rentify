@@ -19,7 +19,6 @@
   }
 }
 
-/* Remove default browser margins to avoid white gutters */
 html,
 body {
   height: 100%;

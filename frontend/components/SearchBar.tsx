@@ -23,7 +23,7 @@ export default function SearchBar({
   return (
     <form onSubmit={handleSubmit} className={`w-full max-w-2xl ${className}`}>
       <div className="flex items-center gap-3 rounded-full bg-white shadow-md ring-1 ring-black/5 px-5 py-3">
-        <span aria-hidden className="text-gray-500">
+        <span aria-hidden className="text-gray-500 text-xl">
           🔍
         </span>
         <input
@@ -34,11 +34,9 @@ export default function SearchBar({
         />
         <button
           type="submit"
-          className="inline-flex items-center justify-center rounded-full bg-emerald-500 hover:bg-emerald-600 text-white w-9 h-9 transition-colors"
+          className="inline-flex items-center justify-center rounded-full text-gray-500 w-20 h-6 transition-colors"
           aria-label="Search"
-        >
-          <span className="text-lg">≡</span>
-        </button>
+        ></button>
       </div>
     </form>
   );

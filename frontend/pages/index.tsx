@@ -15,31 +15,31 @@ export default function Home() {
         />
       </Head>
 
-      {/* Gradient blobs */}
+      {/* Gradient green blobs */}
       <div
-        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-full blur-3xl"
+        className="pointer-events-none absolute -top-12 right-1/6 h-[620px] w-[620px] rounded-full blur-3xl"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(142,221,174,0.45), rgba(142,221,174,0.0))",
+            "radial-gradient(closest-side, rgba(142,221,174,1.0), rgba(142,221,174,0.0))",
         }}
       />
       <div
-        className="pointer-events-none absolute -left-40 top-1/3 h-[460px] w-[460px] rounded-full blur-3xl"
+        className="pointer-events-none absolute -left-10 top-1/3 h-[560px] w-[560px] rounded-full blur-3xl"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(142,221,174,0.35), rgba(142,221,174,0.0))",
+            "radial-gradient(closest-side, rgba(142,221,174,1.0), rgba(142,221,174,0.0))",
         }}
       />
       <div
-        className="pointer-events-none absolute -right-40 top-1/2 h-[420px] w-[420px] rounded-full blur-3xl"
+        className="pointer-events-none absolute -right-40 top-1/2 h-[520px] w-[520px] rounded-full blur-3xl"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(142,221,174,0.35), rgba(142,221,174,0.0))",
+            "radial-gradient(closest-side, rgba(142,221,174,1.0), rgba(142,221,174,0.0))",
         }}
       />
 
       {/* Hero */}
-      <section className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 pt-20">
+      <section className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 pt-32">
         <h1
           className="text-6xl md:text-7xl font-extrabold tracking-tight text-emerald-900"
           style={{
@@ -55,7 +55,7 @@ export default function Home() {
       </section>
 
       {/* Why section */}
-      <section className="relative z-10 mx-auto mt-20 max-w-6xl px-6">
+      <section className="relative z-10 mx-auto mt-32 max-w-6xl px-6">
         <h2 className="text-4xl md:text-5xl font-extrabold text-emerald-900 text-center">
           Why Rentify?
         </h2>
@@ -63,7 +63,7 @@ export default function Home() {
           <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 text-center">
             <h3 className="text-2xl font-bold text-emerald-900">Save Money</h3>
             <p className="mt-3 text-emerald-900/80">
-              No need to buy costly tools you’ll only use once.
+              No need to buy costly tools you'll only use once.
             </p>
           </div>
           <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 text-center">
