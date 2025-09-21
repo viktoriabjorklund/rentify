@@ -30,13 +30,6 @@ export default function Home() {
             "radial-gradient(closest-side, rgba(142,221,174,1.0), rgba(142,221,174,0.0))",
         }}
       />
-      <div
-        className="pointer-events-none absolute -right-40 top-1/2 h-[520px] w-[520px] rounded-full blur-3xl"
-        style={{
-          background:
-            "radial-gradient(closest-side, rgba(142,221,174,1.0), rgba(142,221,174,0.0))",
-        }}
-      />
 
       {/* Hero */}
       <section className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 pt-32">
