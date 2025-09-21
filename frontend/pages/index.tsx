@@ -1,197 +1,85 @@
-import { useEffect, useState } from "react";
+import Head from "next/head";
+import SearchBar from "@/components/SearchBar";
 
-// den här är för att göra de enklare att utveckla. Så man får fel om man skriver tools.hallå eller vad som helst
-// kan tas bort
-interface Tool {
-  id: number;
-  name: string;
-  description: string;
-  user: {
-    username: string;
-  };
-}
-
-const apiBase = "http://localhost:8080/api/";
-
-export default function HomePage() {
-  const [token, setToken] = useState<string | null>(null);
-  const [tools, setTools] = useState<Tool[]>([]);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isRegistration, setIsRegistration] = useState(false);
-
-  // kollar om de finns en token, med en token så vet serven vem de är somm håller på.
-  // Så denna måste vi ha. Just nu har vi ett dummy data på token. Du kommer automatiskt loggas ut efter 
-  // 24h för då raderas token
-  useEffect(() => {
-    const saved = localStorage.getItem("token");
-    if (saved) setToken(saved);
-  }, []);
-
-  useEffect(() => {
-    if (token) {
-      fetchTools();
-    }
-  }, [token]);
-
-  async function fetchTools() {
-    if (!token) return;
-  
-    const res = await fetch(apiBase + "tools", {
-      headers: {
-        "Authorization": `Bearer ${token}`,
-      },
-    });
-  
-    const data = await res.json();
-    console.log("TOOLS API RESPONSE:", data);
-  
-    if (!Array.isArray(data)) {
-      console.error("Fel vid hämtning av tools:", data);
-      return;
-    }
-  
-    setTools(data);
-  }
-  
-
-  async function authenticate() {
-    try {
-      const res = await fetch(
-        apiBase + (isRegistration ? "users/register" : "users/login"),
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: email, password }),
-        }
-      );
-      const data = await res.json();
-      console.log("AUTH RESPONSE:", data)
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        setToken(data.token);
-      } else {
-        throw new Error("Auth failed");
-      }
-    } catch (err: any) {
-      setError(err.message);
-    }
-  }
-
-  function logout() {
-    localStorage.removeItem("token");
-    setToken(null);
-  }
-  
-
-  async function addTool(name: string) {
-    if (!name) return;
-    await fetch(apiBase + "tools", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token ?? "",
-      },
-      body: JSON.stringify({ name }),
-    });
-    fetchTools();
-  }
-
-  async function updateTool(id: number, description: string) {
-    await fetch(apiBase + "tools/" + id, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token ?? "",
-      },
-      body: JSON.stringify({ description }),
-    });
-    fetchTools();
-  }
-
-  async function deleteTool(id: number) {
-    await fetch(apiBase + "tools/" + id, {
-      method: "DELETE",
-      headers: { Authorization: token ?? "" },
-    });
-    fetchTools();
-  }
-
-  if (!token) {
-    return (
-      <section style={{ maxWidth: 400, margin: "2rem auto" }}>
-        <h2>{isRegistration ? "Skapa konto" : "Logga in"}</h2>
-
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-        />
-        <input
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="********"
-          type="password"
-        />
-        <button onClick={authenticate}>
-          {isRegistration ? "Registrera" : "Logga in"}
-        </button>
-
-        {error && <p>{error}</p>}
-
-        <hr />
-        <p style={{ fontSize: "0.9rem" }}>
-          {isRegistration ? "Har du redan ett konto?" : "Har du inget konto?"}
-        </p>
-        <button onClick={() => setIsRegistration(!isRegistration)}>
-          {isRegistration ? "Gå till login" : "Skapa konto"}
-        </button>
-      </section>
-    );
-  }
-
+export default function Home() {
   return (
-    <div style={{ maxWidth: 600, margin: "2rem auto" }}>
-      <h1>Du har {tools.length} verktyg</h1>
-
-      {tools.map((tool) => (
-        <div key={tool.id} style={{ border: "1px solid #ccc", padding: "1rem" }}>
-          <p>{tool.name}</p>
-          <p>Ägare: {tool.user.username}</p>
-          <input
-            placeholder="Beskrivning..."
-            value={tool.description}
-            onChange={(e) => updateTool(tool.id, e.target.value)}
-          />
-          <button onClick={() => deleteTool(tool.id)}>Ta bort</button>
-        </div>
-      ))}
-
-
-      <button onClick={logout}>Logga ut</button>
-
-
-      <div style={{ display: "flex", gap: "0.5rem" }}>
-        <input
-          id="toolInput"
-          placeholder="Lägg till nytt verktyg"
-          onKeyDown={(e) => {
-            if (e.key === "Enter")
-              addTool((e.target as HTMLInputElement).value);
-          }}
+    <main
+      className="relative min-h-screen overflow-hidden"
+      style={{ backgroundColor: "#F4F6F5" }}
+    >
+      <Head>
+        <title>Rentify</title>
+        <meta
+          name="description"
+          content="Rent tools easily – save money, earn money, and sustainify"
         />
-        <button
-          onClick={() =>
-            addTool(
-              (document.getElementById("toolInput") as HTMLInputElement).value
-            )
-          }
-        >
-          +
-        </button>
+      </Head>
 
-      </div>
-    </div>
+      {/* Gradient blobs */}
+      <div
+        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-full blur-3xl"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(142,221,174,0.45), rgba(142,221,174,0.0))",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute -left-40 top-1/3 h-[460px] w-[460px] rounded-full blur-3xl"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(142,221,174,0.35), rgba(142,221,174,0.0))",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute -right-40 top-1/2 h-[420px] w-[420px] rounded-full blur-3xl"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(142,221,174,0.35), rgba(142,221,174,0.0))",
+        }}
+      />
+
+      {/* Hero */}
+      <section className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 pt-20">
+        <h1
+          className="text-6xl md:text-7xl font-extrabold tracking-tight text-emerald-900"
+          style={{
+            fontFamily:
+              "ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
+          }}
+        >
+          Rentify
+        </h1>
+        <div className="mt-8 w-full flex justify-center">
+          <SearchBar />
+        </div>
+      </section>
+
+      {/* Why section */}
+      <section className="relative z-10 mx-auto mt-20 max-w-6xl px-6">
+        <h2 className="text-4xl md:text-5xl font-extrabold text-emerald-900 text-center">
+          Why Rentify?
+        </h2>
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 text-center">
+            <h3 className="text-2xl font-bold text-emerald-900">Save Money</h3>
+            <p className="mt-3 text-emerald-900/80">
+              No need to buy costly tools you’ll only use once.
+            </p>
+          </div>
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 text-center">
+            <h3 className="text-2xl font-bold text-emerald-900">Sustainify</h3>
+            <p className="mt-3 text-emerald-900/80">
+              Sharing tools helps cut waste and protect the planet.
+            </p>
+          </div>
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 text-center">
+            <h3 className="text-2xl font-bold text-emerald-900">Earn Money</h3>
+            <p className="mt-3 text-emerald-900/80">
+              Rent out your unused tools and get extra income.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
