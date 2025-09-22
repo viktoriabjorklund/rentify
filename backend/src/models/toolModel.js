@@ -11,6 +11,8 @@ export async function createTool(name, userId) {
     data: {
       name,
       description: "",
+      price,
+      location,
       userId,
     },
     include: { user: true },
