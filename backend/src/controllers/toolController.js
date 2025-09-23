@@ -19,7 +19,7 @@ export async function createTool(req, res) {
     if (location === null || location === undefined || location.trim() === "") {
       return res.status(400).json({ error: "Location is required" });
     }
-    const tool = await toolModel.createTool(name, description, price, location, req.userId);
+    const tool = await toolModel.createTool({name, description, price, location, userId: req.userId});
     res.status(201).json(tool);
   } catch (err) {
     res.status(500).json({ error: err.message });
