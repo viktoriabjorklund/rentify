@@ -11,8 +11,15 @@ export async function getTools(req, res) {
 
 export async function createTool(req, res) {
   try {
-    const { name } = req.body;
-    const tool = await toolModel.createTool(name, req.userId);
+    const { name, description = "", price, location } = req.body;
+
+    if (price === null || price === undefined || isNaN(price) || price <= 0) { // Added validation for price and location
+      return res.status(400).json({ error: "Invalid price" });
+    }
+    if (location === null || location === undefined || location.trim() === "") {
+      return res.status(400).json({ error: "Location is required" });
+    }
+    const tool = await toolModel.createTool({name, description, price, location, userId: req.userId});
     res.status(201).json(tool);
   } catch (err) {
     res.status(500).json({ error: err.message });
