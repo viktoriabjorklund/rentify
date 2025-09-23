@@ -1,15 +1,16 @@
 import * as React from 'react';
+import { useRouter } from 'next/router';
 import PrimaryButton from '@/components/PrimaryButton';
 import AuthCard from '@/components/AuthCard';
 import FormField from '@/components/FormField';
 
 export default function CreateAccount() {
+  const router = useRouter();
   const [firstname, setFirstname] = React.useState('');
   const [secondname, setSecondname] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
-  const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [errors, setErrors] = React.useState<{
     firstname?: string;
@@ -37,9 +38,37 @@ export default function CreateAccount() {
     setErrors(v);
     if (Object.keys(v).length) return;
 
-    // Simulate a loading state
     setLoading(true);
-    setTimeout(() => setLoading(false), 1000);
+    try {
+      const response = await fetch('http://localhost:8080/api/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: email, // Using email as username
+          password: password,
+          name: firstname,
+          surname: secondname,
+        }),
+      });
+
+      if (response.ok) {
+        // Account created successfully, redirect to login
+        router.push('/login');
+      } else {
+        const error = await response.json();
+        if (error.error === "Username already taken") {
+          setErrors({ email: 'This email is already registered' });
+        } else {
+          setErrors({ email: error.error || 'Registration failed' });
+        }
+      }
+    } catch (error) {
+      setErrors({ email: 'Network error. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
