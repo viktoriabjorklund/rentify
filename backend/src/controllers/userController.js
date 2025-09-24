@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
 
 export async function register(req, res) {
-    const { username, password } = req.body;
+    const { username, password, name, surname } = req.body;
     if (!username || !password) return res.status(400).json({ error: "Missing fields" });
   
     try {
@@ -14,7 +14,7 @@ export async function register(req, res) {
       if (existing) return res.status(400).json({ error: "Username already taken" });
   
       const hashed = bcrypt.hashSync(password, 10);
-      const newUser = await userModel.createUser(username, hashed);
+      const newUser = await userModel.createUser(username, hashed, name, surname);
   
       res.status(201).json(newUser);
     } catch (err) {

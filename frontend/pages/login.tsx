@@ -1,9 +1,11 @@
 import * as React from 'react';
+import { useRouter } from 'next/router';
 import PrimaryButton from '@/components/PrimaryButton';
 import AuthCard from '@/components/AuthCard';
 import FormField from '@/components/FormField';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = React.useState('');
   const [pw, setPw] = React.useState('');
   const [showPw, setShowPw] = React.useState(false);
@@ -23,9 +25,33 @@ export default function LoginPage() {
     setErrors(v);
     if (Object.keys(v).length) return;
 
-    // just for now to simulate a loading state
     setLoading(true);
-    setTimeout(() => setLoading(false), 1000);
+    try {
+      const response = await fetch('http://localhost:8080/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: email, // Using email as username for now
+          password: pw,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Store the JWT token (you might want to use localStorage or a proper auth context)
+        localStorage.setItem('token', data.token);
+        router.push('/dashboard');
+      } else {
+        const error = await response.json();
+        setErrors({ email: error.message || 'Login failed' });
+      }
+    } catch (error) {
+      setErrors({ email: 'Network error. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -81,7 +107,7 @@ export default function LoginPage() {
 
             <p className="text-center text-sm text-[#174B33]">
               Don’t have an account?{' '}
-              <a href="/register" className="text-[#174B33] hover:underline">
+              <a href="/createaccount" className="text-[#174B33] hover:underline">
                 Register
               </a>
             </p>
