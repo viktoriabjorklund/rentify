@@ -39,3 +39,13 @@ export async function deleteTool(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+export async function displayTool(req, res) {
+  try {
+    const { id } = req.params;
+    await toolModel.displayTool(id);
+    res.json({ message: "Tool deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
