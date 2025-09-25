@@ -32,3 +32,9 @@ export async function deleteTool(id) {
     where: { id: parseInt(id) },
   });
 }
+
+export async function displayTool(id) {
+  return prisma.tool.findUnique({
+    where: { id: parseInt(id)},
+  });
+}
