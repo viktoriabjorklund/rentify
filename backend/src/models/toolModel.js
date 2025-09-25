@@ -10,7 +10,7 @@ export async function createTool({name, description, price, location, userId}) {
   return prisma.tool.create({
     data: {
       name,
-      description:
+      description,
       price,
       location,
       userId,

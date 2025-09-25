@@ -20,6 +20,7 @@ model User {
   name      String?
   surname   String?
   tools     Tool[]
+  sentRequests      Request[] @relation("UserAsRenter")
 }
 
 model Tool {
@@ -30,5 +31,18 @@ model Tool {
   location    String?    
   userId      Int        
   user        User       @relation(fields: [userId], references: [id])
+  requests    Request[]  @relation("ToolToRequest")
 }
 
+model Request {
+  id          Int      @id @default(autoincrement())
+  renterId    Int
+  renter      User     @relation("UserAsRenter", fields: [renterId], references: [id])
+  toolId      Int
+  tool        Tool     @relation("ToolToRequest", fields: [toolId], references: [id])
+  startDate   DateTime
+  endDate     DateTime
+  pending     Boolean  @default(true)
+  accepted    Boolean  @default(false)
+  price       Int?
+}

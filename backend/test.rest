@@ -16,3 +16,29 @@ Content-Type: application/json
 ### TEST DELETE
 
 DELETE http://localhost:8080/api/data
+
+### Skapa en request
+POST http://localhost:8080/api/requests
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTIsImlhdCI6MTc1ODc4NzM3NiwiZXhwIjoxNzU4ODczNzc2fQ.BNzHX8ADD6P_W3HEG-B1s1RkrZa73eygt3V066roahM
+
+{
+  "toolId": 7,
+  "startDate": "2025-10-01T00:00:00.000Z",
+  "endDate": "2025-10-05T00:00:00.000Z"
+}
+
+### Hämta requests jag skickat
+GET http://localhost:8080/api/requests/sentrequests
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTIsImlhdCI6MTc1ODc4NzM3NiwiZXhwIjoxNzU4ODczNzc2fQ.BNzHX8ADD6P_W3HEG-B1s1RkrZa73eygt3V066roahM
+
+### test login
+POST http://localhost:8080/api/users/login
+Content-Type: application/json
+
+
+{
+ "username": "vickan@gmail.com",
+ "password": "vickan1"
+}
+
