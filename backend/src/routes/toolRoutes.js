@@ -8,5 +8,7 @@ router.get('/', authMiddleware, toolController.getTools);
 router.post('/', authMiddleware, toolController.createTool);
 router.put('/:id', authMiddleware, toolController.updateTool);
 router.delete('/:id', authMiddleware, toolController.deleteTool);
+router.get('/mytools', authMiddleware, toolController.getMyTools);
+
 
 export default router;
