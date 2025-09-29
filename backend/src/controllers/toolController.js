@@ -46,3 +46,12 @@ export async function deleteTool(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+export async function getMyTools(req, res) {
+  try {
+    const tools = await toolModel.getToolsByUser(req.userId);
+    res.json(tools);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
