@@ -41,3 +41,49 @@ export async function createRequest(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+export async function getRequest(req, res) {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const request = await requestModel.getRequestById(id);
+  
+      if (!request) {
+        return res.status(404).json({ error: "Request not found" });
+      }
+  
+      if (req.userId !== request.renterId && req.userId !== request.tool.user.id) {
+        return res.status(403).json({ error: "Not allowed to view this request" });
+      }
+  
+      res.json(request);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+
+export async function deleteRequest(req, res) {
+    try {
+      const { id } = req.params;
+      await requestModel.deleteRequest(id);
+      res.json({ message: "Request deleted" });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+}
+
+export async function updateRequest(req, res) {
+    try {
+      const { id } = req.params;
+      const { pending, accepted } = req.body;
+  
+      if (typeof pending !== "boolean" || typeof accepted !== "boolean") {
+        return res.status(400).json({ error: "pending and accepted must be boolean values" });
+      }
+  
+      const updated = await requestModel.updateRequest(id, { pending, accepted });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+  

@@ -1,20 +1,60 @@
 import prisma from '../prismaClient.js';
 
-
-
 export async function getAllSentRequests(userId) {
     return prisma.request.findMany({
-        where: { renterId: userId },
-        include: { tool: true, owner: true }
+      where: { renterId: userId },
+      include: {
+        tool: {
+          select: {
+            id: true,
+            name: true,
+            location: true,
+            price: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                surname: true
+              }
+            }
+          }
+        }
+      }
     });
-}
-
-export async function getAllRecievedRequests(userId) {
+  }
+  
+  export async function getAllRecievedRequests(userId) {
     return prisma.request.findMany({
-        where: { userId: userId },
-        include: { tool: true, renter: true }
+      where: { tool: { userId: userId } },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        pending: true,
+        accepted: true,
+        price: true,
+        tool: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            location: true,
+            price: true
+          }
+        },
+        renter: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            surname: true
+          }
+        }
+      }
     });
-}
+  }  
+  
 
 export async function createRequest({ renterId, toolId, startDate, endDate, price }) {
     const tool = await prisma.tool.findUnique({
@@ -49,3 +89,59 @@ export async function createRequest({ renterId, toolId, startDate, endDate, pric
       })
       
   }
+
+
+export async function getRequestById(id) {
+    return prisma.request.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        pending: true,
+        accepted: true,
+        price: true,
+        renter: {
+          select: {
+            username: true,
+            name: true,
+            surname: true
+          }
+        },
+        tool: {
+          select: {
+            id: true,
+            name: true,
+            location: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                surname: true
+              }
+            }
+          }
+        }
+      }
+    });
+}
+
+export async function deleteRequest(id) {
+    return prisma.request.delete({
+      where: { id: parseInt(id) },
+    });
+}
+
+export async function updateRequest(id, data) {
+  return prisma.request.update({
+    where: { id: parseInt(id) },
+    data: {
+      pending: data.pending,
+      accepted: data.accepted,
+      price: data.price
+    },
+  });
+}
+
+  

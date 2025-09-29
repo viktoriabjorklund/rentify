@@ -4,8 +4,14 @@ import * as requestController from '../controllers/requestController.js';
 
 const router = express.Router();
 
-router.get('/sentrequests', authMiddleware, requestController.getSentRequests);
-router.get('/recievedrequests', authMiddleware, requestController.getRecievedRequests);
+router.get('/sent', authMiddleware, requestController.getSentRequests);
+router.get('/recieved', authMiddleware, requestController.getRecievedRequests);
 router.post('/', authMiddleware, requestController.createRequest);
+router.get('/:id', authMiddleware, requestController.getRequest);
+router.delete('/:id', authMiddleware, requestController.deleteRequest);
+router.put('/:id', authMiddleware, requestController.updateRequest);
+
+
+
 
 export default router;

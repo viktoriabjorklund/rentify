@@ -1,44 +1,69 @@
 ### TEST GET / WEBSITE
 GET http://localhost:8080
 
-### TEST GET /api/data
-GET http://localhost:8080/api/data
+### TEST GET TOOL
 
-### TEST POST adding a user
+GET http://localhost:8080/api/tools/5
+Content-Type: application/json
+Authorization: Bearer <jwt token>
 
-POST http://localhost:8080/api/data
+
+### TEST CREATE REQUEST
+POST http://localhost:8080/api/requests
+Content-Type: application/json
+Authorization: Bearer <jwt token>
+
+{
+  "toolId": 8,
+  "startDate": "2025-10-01T00:00:00.000Z",
+  "endDate": "2025-10-05T00:00:00.000Z",
+  "price": 200
+}
+
+### 2. Hämta alla requests jag skickat
+GET http://localhost:8080/api/requests/sent
+Content-Type: application/json
+Authorization: Bearer <jwt token>
+
+### 2. Hämta alla requests jag fått
+GET http://localhost:8080/api/requests/recieved
+Content-Type: application/json
+Authorization: Bearer <jwt token>
+
+
+### TEST LOGIN qwerty
+
+POST http://localhost:8080/api/users/login
 Content-Type: application/json
 
 {
-    "name": "gargamel"
+ "username": "<username>",
+ "password": "<password>"
 }
 
-### TEST DELETE
-
-DELETE http://localhost:8080/api/data
-
-### Skapa en request
+### TEST CREATE REQUEST qwerty
 POST http://localhost:8080/api/requests
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTIsImlhdCI6MTc1ODc4NzM3NiwiZXhwIjoxNzU4ODczNzc2fQ.BNzHX8ADD6P_W3HEG-B1s1RkrZa73eygt3V066roahM
+Authorization: Bearer <jwt token>
 
 {
   "toolId": 7,
   "startDate": "2025-10-01T00:00:00.000Z",
-  "endDate": "2025-10-05T00:00:00.000Z"
+  "endDate": "2025-10-05T00:00:00.000Z",
+  "price": 200
 }
 
-### Hämta requests jag skickat
-GET http://localhost:8080/api/requests/sentrequests
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTIsImlhdCI6MTc1ODc4NzM3NiwiZXhwIjoxNzU4ODczNzc2fQ.BNzHX8ADD6P_W3HEG-B1s1RkrZa73eygt3V066roahM
+### Delete a request by id
+DELETE http://localhost:8080/api/requests/1
+Authorization: Bearer <jwt token>
 
-### test login
-POST http://localhost:8080/api/users/login
+
+### Update a request
+PUT http://localhost:8080/api/requests/2
+Authorization: Bearer <jwt token>
 Content-Type: application/json
 
-
 {
- "username": "vickan@gmail.com",
- "password": "vickan1"
+  "pending": false,
+  "accepted": true
 }
-
