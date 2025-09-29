@@ -36,12 +36,20 @@ export async function login(req, res) {
 
         const passwordIsValid = bcrypt.compareSync(password, user.password)
         if (!passwordIsValid) { return res.status(401).send({ message: "Invalid password" }) }
-        console.log(user)
-
+// jag la till användardata i login-responsen så att vi har det ifall vi vill visa användarnamn eller andra detaljer i framtiden, typ när de loggar in (välkommen tillbaka XX)
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' })
-        res.json({ token })
+        res.json({ 
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                surname: user.surname
+            }
+        })
     } catch (err) {
         console.log(err.message)
         res.sendStatus(503)
     }
 }
+
