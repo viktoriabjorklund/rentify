@@ -32,3 +32,9 @@ export async function deleteTool(id) {
     where: { id: parseInt(id) },
   });
 }
+
+export async function getToolsByUser(userId) {
+  return prisma.tool.findMany({
+    where: { userId: parseInt(userId) },
+  });
+}
