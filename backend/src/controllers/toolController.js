@@ -47,6 +47,7 @@ export async function deleteTool(req, res) {
   }
 }
 
+
 export async function displayTool(req, res) {
   try {
     const { id } = req.params;
@@ -61,6 +62,7 @@ export async function displayTool(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
 export async function getMyTools(req, res) {
   try {
     const tools = await toolModel.getToolsByUser(req.userId);
