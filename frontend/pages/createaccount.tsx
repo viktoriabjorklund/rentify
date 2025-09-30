@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import PrimaryButton from '@/components/PrimaryButton';
 import AuthCard from '@/components/AuthCard';
 import FormField from '@/components/FormField';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/auth';
 
 export default function CreateAccount() {
   const router = useRouter();

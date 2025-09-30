@@ -37,5 +37,110 @@ export async function getAllTools(): Promise<Tool[]> {
   }
 }
 
+export async function getUserTools(): Promise<Tool[]> {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/tools/mytools`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user tools: ${response.statusText}`);
+    }
+
+    const userTools = await response.json();
+    return userTools;
+  } catch (error) {
+    console.error('Error fetching user tools:', error);
+    throw error;
+  }
+}
+
+export async function createTool(data: { name: string; price: number; location: string; description?: string }): Promise<Tool> {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/tools`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Failed to create tool: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating tool:', error);
+    throw error;
+  }
+}
+
+export async function updateTool(id: number, description: string): Promise<Tool> {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ description }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update tool: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating tool:', error);
+    throw error;
+  }
+}
+
+export async function deleteTool(id: number): Promise<void> {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete tool: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Error deleting tool:', error);
+    throw error;
+  }
+}
+
 // Default tool image URL - you can change this to any image you prefer
 export const DEFAULT_TOOL_IMAGE = '';

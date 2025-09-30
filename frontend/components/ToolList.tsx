@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { Tool } from "../services/toolService";
 
 type ToolListProps = {
@@ -15,12 +16,13 @@ function ToolCard({ tool, showUser = false, showDescription = false }: {
 }) {
   return (
     <article className="transition hover:opacity-80">
-      <div className="aspect-[16/10] w-full bg-gray-200 rounded-2xl overflow-hidden">
+      <div className="aspect-[16/10] w-full bg-gray-200 rounded-2xl overflow-hidden relative">
         {tool.image ? (
-          <img
+          <Image
             src={tool.image}
             alt={tool.name}
-            className="h-full w-full object-cover"
+            fill
+            className="object-cover"
           />
         ) : (
           <div className="h-full w-full flex items-center justify-center">

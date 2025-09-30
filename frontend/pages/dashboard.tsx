@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useAuth } from "../hooks/useAuth";
-import { Tool } from "../services/toolService";
-
-const apiBase = "http://localhost:8080/api/";
+import { useAuth } from "../hooks/auth";
+import { Tool, getUserTools, createTool, updateTool, deleteTool } from "../services/toolService";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { token, isAuthenticated, logout, isLoading } = useAuth();
   const [tools, setTools] = useState<Tool[]>([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [newToolName, setNewToolName] = useState("");
   const [newToolPrice, setNewToolPrice] = useState("");
   const [newToolLocation, setNewToolLocation] = useState("");
@@ -30,22 +29,18 @@ export default function DashboardPage() {
   }, [token, isAuthenticated, isLoading, router]);
 
   async function fetchTools() {
-    if (!token) return;
-
-    const res = await fetch(apiBase + "tools", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await res.json();
-
-    if (!Array.isArray(data)) {
-      console.error("Error fetching tools:", data);
-      return;
+    try {
+      setLoading(true);
+      console.log("Fetching user tools...");
+      const userTools = await getUserTools();
+      console.log("User tools received:", userTools);
+      setTools(userTools);
+    } catch (error) {
+      console.error("Error fetching user tools:", error);
+      setError("Failed to fetch tools");
+    } finally {
+      setLoading(false);
     }
-
-    setTools(data);
   }
 
 
@@ -56,45 +51,30 @@ export default function DashboardPage() {
     }
     
     try {
-      const response = await fetch(apiBase + "tools", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name, price: Number(price), location }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create tool");
-      }
-      
+      await createTool({ name, price: Number(price), location });
       fetchTools();
       setError(""); // Clear any previous errors
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   }
 
-  async function updateTool(id: number, description: string) {
-    await fetch(apiBase + "tools/" + id, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ description }),
-    });
-    fetchTools();
+  async function updateToolDescription(id: number, description: string) {
+    try {
+      await updateTool(id, description);
+      fetchTools();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update tool');
+    }
   }
 
-  async function deleteTool(id: number) {
-    await fetch(apiBase + "tools/" + id, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchTools();
+  async function deleteToolHandler(id: number) {
+    try {
+      await deleteTool(id);
+      fetchTools();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete tool');
+    }
   }
 
   if (isLoading) {
@@ -113,6 +93,14 @@ export default function DashboardPage() {
     );
   }
 
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 600, margin: "2rem auto" }}>
+        <p>Loading your tools...</p>
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: 600, margin: "2rem auto" }}>
       <h1>You have {tools.length} tools</h1>
@@ -125,14 +113,14 @@ export default function DashboardPage() {
           <h4>{tool.name}</h4>
           <p>Price: {tool.price}kr/day</p>
           <p>Location: {tool.location}</p>
-          <p>Owner: {tool.user.username}</p>
+          <p>Owner: {tool.user?.username || 'Unknown'}</p>
           <input
             placeholder="Description..."
             value={tool.description}
-            onChange={(e) => updateTool(tool.id, e.target.value)}
+            onChange={(e) => updateToolDescription(tool.id, e.target.value)}
             style={{ width: "100%", marginBottom: "0.5rem" }}
           />
-          <button onClick={() => deleteTool(tool.id)}>Delete</button>
+          <button onClick={() => deleteToolHandler(tool.id)}>Delete</button>
         </div>
       ))}
 

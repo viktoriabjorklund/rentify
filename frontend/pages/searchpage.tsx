@@ -1,8 +1,6 @@
 import React from "react";
 import ToolList from "../components/ToolList";
-import { useSearch } from "../hooks/useSearch";
-
-import { SortOption } from '../hooks/useSearch';
+import { useSearch, SortOption } from "../hooks/search";
 
 function SortMenu({ value, onChange }: { value: SortOption; onChange: (v: SortOption) => void }) {
   return (

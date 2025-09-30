@@ -74,6 +74,12 @@ export function storeToken(token: string): void {
   }
 }
 
+export function storeUser(user: User): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+}
+
 export function getStoredToken(): string | null {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('token');
@@ -81,8 +87,23 @@ export function getStoredToken(): string | null {
   return null;
 }
 
+export function getStoredUser(): User | null {
+  if (typeof window !== 'undefined') {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        return JSON.parse(userStr);
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
 export function removeToken(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }
 }
