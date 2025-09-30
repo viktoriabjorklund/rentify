@@ -56,7 +56,7 @@ export default function Home() {
           <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 text-center">
             <h3 className="text-2xl font-bold text-emerald-900">Save Money</h3>
             <p className="mt-3 text-emerald-900/80">
-              No need to buy costly tools you'll only use once.
+              No need to buy costly tools you&apos;ll only use once.
             </p>
           </div>
           <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 text-center">

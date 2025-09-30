@@ -1,191 +1,163 @@
 import { useEffect, useState } from "react";
-
-// den här är för att göra de enklare att utveckla. Så man får fel om man skriver tools.hallå eller vad som helst
-// kan tas bort
-interface Tool {
-  id: number;
-  name: string;
-  description: string;
-  user: {
-    username: string;
-  };
-}
-
-const apiBase = "http://localhost:8080/api/";
+import { useRouter } from "next/router";
+import { useAuth } from "../hooks/auth";
+import { Tool, getUserTools, createTool, updateTool, deleteTool } from "../services/toolService";
 
 export default function DashboardPage() {
-  const [token, setToken] = useState<string | null>(null);
+  const router = useRouter();
+  const { token, isAuthenticated, logout, isLoading } = useAuth();
   const [tools, setTools] = useState<Tool[]>([]);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isRegistration, setIsRegistration] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [newToolName, setNewToolName] = useState("");
+  const [newToolPrice, setNewToolPrice] = useState("");
+  const [newToolLocation, setNewToolLocation] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("token");
-    if (saved) setToken(saved);
-  }, []);
-
-  useEffect(() => {
+    // Don't redirect while auth state is still loading
+    if (isLoading) {
+      return;
+    }
+    
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
     if (token) {
       fetchTools();
     }
-  }, [token]);
+  }, [token, isAuthenticated, isLoading, router]);
 
   async function fetchTools() {
-    if (!token) return;
+    try {
+      setLoading(true);
+      console.log("Fetching user tools...");
+      const userTools = await getUserTools();
+      console.log("User tools received:", userTools);
+      setTools(userTools);
+    } catch (error) {
+      console.error("Error fetching user tools:", error);
+      setError("Failed to fetch tools");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    const res = await fetch(apiBase + "tools", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
 
-    const data = await res.json();
-    console.log("TOOLS API RESPONSE:", data);
-
-    if (!Array.isArray(data)) {
-      console.error("Fel vid hämtning av tools:", data);
+  async function addTool(name: string, price: number, location: string) {
+    if (!name || !price || !location) {
+      setError("All fields required (name, price, location)");
       return;
     }
-
-    setTools(data);
-  }
-
-  async function authenticate() {
+    
     try {
-      const res = await fetch(
-        apiBase + (isRegistration ? "users/register" : "users/login"),
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: email, password }),
-        }
-      );
-      const data = await res.json();
-      console.log("AUTH RESPONSE:", data);
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        setToken(data.token);
-      } else {
-        throw new Error("Auth failed");
-      }
-    } catch (err: any) {
-      setError(err.message);
+      await createTool({ name, price: Number(price), location });
+      fetchTools();
+      setError(""); // Clear any previous errors
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   }
 
-  function logout() {
-    localStorage.removeItem("token");
-    setToken(null);
+  async function updateToolDescription(id: number, description: string) {
+    try {
+      await updateTool(id, description);
+      fetchTools();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update tool');
+    }
   }
 
-  async function addTool(name: string) {
-    if (!name) return;
-    await fetch(apiBase + "tools", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token ?? "",
-      },
-      body: JSON.stringify({ name }),
-    });
-    fetchTools();
+  async function deleteToolHandler(id: number) {
+    try {
+      await deleteTool(id);
+      fetchTools();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete tool');
+    }
   }
 
-  async function updateTool(id: number, description: string) {
-    await fetch(apiBase + "tools/" + id, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token ?? "",
-      },
-      body: JSON.stringify({ description }),
-    });
-    fetchTools();
-  }
-
-  async function deleteTool(id: number) {
-    await fetch(apiBase + "tools/" + id, {
-      method: "DELETE",
-      headers: { Authorization: token ?? "" },
-    });
-    fetchTools();
-  }
-
-  if (!token) {
+  if (isLoading) {
     return (
-      <section style={{ maxWidth: 400, margin: "2rem auto" }}>
-        <h2>{isRegistration ? "Skapa konto" : "Logga in"}</h2>
+      <div className="text-center py-8">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-        />
-        <input
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="********"
-          type="password"
-        />
-        <button onClick={authenticate}>
-          {isRegistration ? "Registrera" : "Logga in"}
-        </button>
+  if (!isAuthenticated) {
+    return (
+      <div className="text-center py-8">
+        <p>Redirecting to login...</p>
+      </div>
+    );
+  }
 
-        {error && <p>{error}</p>}
-
-        <hr />
-        <p style={{ fontSize: "0.9rem" }}>
-          {isRegistration ? "Har du redan ett konto?" : "Har du inget konto?"}
-        </p>
-        <button onClick={() => setIsRegistration(!isRegistration)}>
-          {isRegistration ? "Gå till login" : "Skapa konto"}
-        </button>
-      </section>
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 600, margin: "2rem auto" }}>
+        <p>Loading your tools...</p>
+      </div>
     );
   }
 
   return (
     <div style={{ maxWidth: 600, margin: "2rem auto" }}>
-      <h1>Du har {tools.length} verktyg</h1>
+      <h1>You have {tools.length} tools</h1>
 
       {tools.map((tool) => (
         <div
           key={tool.id}
-          style={{ border: "1px solid #ccc", padding: "1rem" }}
+          style={{ border: "1px solid #ccc", padding: "1rem", marginBottom: "1rem" }}
         >
-          <p>{tool.name}</p>
-          <p>Ägare: {tool.user.username}</p>
+          <h4>{tool.name}</h4>
+          <p>Price: {tool.price}kr/day</p>
+          <p>Location: {tool.location}</p>
+          <p>Owner: {tool.user?.username || 'Unknown'}</p>
           <input
-            placeholder="Beskrivning..."
+            placeholder="Description..."
             value={tool.description}
-            onChange={(e) => updateTool(tool.id, e.target.value)}
+            onChange={(e) => updateToolDescription(tool.id, e.target.value)}
+            style={{ width: "100%", marginBottom: "0.5rem" }}
           />
-          <button onClick={() => deleteTool(tool.id)}>Ta bort</button>
+          <button onClick={() => deleteToolHandler(tool.id)}>Delete</button>
         </div>
       ))}
 
-      <button onClick={logout}>Logga ut</button>
+      <button onClick={logout}>Logout</button>
 
-      <div style={{ display: "flex", gap: "0.5rem" }}>
-        <input
-          id="toolInput"
-          placeholder="Lägg till nytt verktyg"
-          onKeyDown={(e) => {
-            if (e.key === "Enter")
-              addTool((e.target as HTMLInputElement).value);
-          }}
-        />
-        <button
-          onClick={() =>
-            addTool(
-              (document.getElementById("toolInput") as HTMLInputElement).value
-            )
-          }
-        >
-          +
-        </button>
+      <div style={{ marginTop: "2rem", padding: "1rem", border: "1px solid #ccc" }}>
+        <h3>Add new tool</h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <input
+            placeholder="Tool name"
+            value={newToolName}
+            onChange={(e) => setNewToolName(e.target.value)}
+          />
+          <input
+            placeholder="Price per day (kr)"
+            type="number"
+            value={newToolPrice}
+            onChange={(e) => setNewToolPrice(e.target.value)}
+          />
+          <input
+            placeholder="Location"
+            value={newToolLocation}
+            onChange={(e) => setNewToolLocation(e.target.value)}
+          />
+          <button
+            onClick={() => {
+              addTool(newToolName, Number(newToolPrice), newToolLocation);
+              setNewToolName("");
+              setNewToolPrice("");
+              setNewToolLocation("");
+            }}
+            disabled={!newToolName || !newToolPrice || !newToolLocation}
+          >
+            Add tool
+          </button>
+        </div>
+        {error && <p style={{ color: "red", marginTop: "0.5rem" }}>{error}</p>}
       </div>
     </div>
   );
