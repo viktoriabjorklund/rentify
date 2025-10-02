@@ -13,13 +13,28 @@ export async function createTool(req, res) {
   try {
     const { name, description = "", price, location } = req.body;
 
-    if (price === null || price === undefined || isNaN(price) || price <= 0) { // Added validation for price and location
+    if (!req.file) {
+      return res.status(400).json({ error: "Photo is required" });
+    }
+
+    if (price === null || price === undefined || isNaN(price) || price <= 0) {
       return res.status(400).json({ error: "Invalid price" });
     }
-    if (location === null || location === undefined || location.trim() === "") {
+    if (!location || location.trim() === "") {
       return res.status(400).json({ error: "Location is required" });
     }
-    const tool = await toolModel.createTool({name, description, price, location, userId: req.userId});
+
+    const photoURL = `/uploads/${req.file.filename}`; // spara filens sökväg
+
+    const tool = await toolModel.createTool({
+      name,
+      description,
+      price,
+      location,
+      photoURL,
+      userId: req.userId, 
+    });
+
     res.status(201).json(tool);
   } catch (err) {
     res.status(500).json({ error: err.message });

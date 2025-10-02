@@ -6,13 +6,14 @@ export async function getAllTools() {
   });
 }
 
-export async function createTool({name, description, price, location, userId}) {
+export async function createTool({ name, description, price, location, photoURL, userId }) {
   return prisma.tool.create({
     data: {
       name,
       description,
       price,
       location,
+      photoURL,
       userId,
     },
     include: { user: true },
