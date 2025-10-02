@@ -34,8 +34,16 @@ export async function deleteTool(id) {
   });
 }
 
+
+export async function displayTool(id) {
+  return prisma.tool.findUnique({
+    where: { id: parseInt(id)},
+  });
+}
+
 export async function getToolsByUser(userId) {
   return prisma.tool.findMany({
     where: { userId: parseInt(userId) },
+    include: { user: true }, // la till för att frontend ska få användardata 
   });
 }

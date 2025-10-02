@@ -3,71 +3,28 @@ import { useRouter } from 'next/router';
 import PrimaryButton from '@/components/PrimaryButton';
 import AuthCard from '@/components/AuthCard';
 import FormField from '@/components/FormField';
+import { useAuth } from '../hooks/auth';
 
 export default function CreateAccount() {
   const router = useRouter();
-  const [firstname, setFirstname] = React.useState('');
-  const [secondname, setSecondname] = React.useState('');
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
-  const [errors, setErrors] = React.useState<{
-    firstname?: string;
-    secondname?: string;
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
-  }>({});
-
-  function validate() {
-    const e: typeof errors = {};
-    if (!firstname) e.firstname = 'First name is required';
-    if (!secondname) e.secondname = 'Last name is required';
-    if (!email) e.email = 'Email is required';
-    if (!password) e.password = 'Password is required';
-    if (!confirmPassword) e.confirmPassword = 'Confirm your password';
-    if (password && confirmPassword && password !== confirmPassword)
-      e.confirmPassword = 'Passwords do not match';
-    return e;
-  }
+  const { loading, errors, register } = useAuth();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const v = validate();
-    setErrors(v);
-    if (Object.keys(v).length) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch('http://localhost:8080/api/users/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: email, // Using email as username
-          password: password,
-          name: firstname,
-          surname: secondname,
-        }),
-      });
-
-      if (response.ok) {
-        // Account created successfully, redirect to login
-        router.push('/login');
-      } else {
-        const error = await response.json();
-        if (error.error === "Username already taken") {
-          setErrors({ email: 'This email is already registered' });
-        } else {
-          setErrors({ email: error.error || 'Registration failed' });
-        }
-      }
-    } catch (error) {
-      setErrors({ email: 'Network error. Please try again.' });
-    } finally {
-      setLoading(false);
+    const success = await register({ 
+      firstName, 
+      lastName, 
+      email, 
+      password, 
+      confirmPassword 
+    });
+    if (success) {
+      router.push('/login');
     }
   }
 
@@ -103,17 +60,17 @@ export default function CreateAccount() {
               id="firstname"
               label="First name"
               type="text"
-              value={firstname}
-              onChange={setFirstname}
-              error={errors.firstname}
+              value={firstName}
+              onChange={setFirstName}
+              error={errors.firstName}
             />
             <FormField
               id="secondname"
               label="Last name"
               type="text"
-              value={secondname}
-              onChange={setSecondname}
-              error={errors.secondname}
+              value={lastName}
+              onChange={setLastName}
+              error={errors.lastName}
             />
           </div>
 

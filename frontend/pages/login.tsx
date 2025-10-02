@@ -1,56 +1,23 @@
 import * as React from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import PrimaryButton from '@/components/PrimaryButton';
 import AuthCard from '@/components/AuthCard';
 import FormField from '@/components/FormField';
+import { useAuth } from '../hooks/auth';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = React.useState('');
-  const [pw, setPw] = React.useState('');
-  const [showPw, setShowPw] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [errors, setErrors] = React.useState<{email?: string; pw?: string}>({});
+  const [password, setPassword] = React.useState('');
+  const { loading, errors, login } = useAuth();
 
-  function validate() {
-    const e: typeof errors = {};
-    if (!email) e.email = 'Email is required';
-    if (!pw) e.pw = 'Password is required';
-    return e;
-  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const v = validate();
-    setErrors(v);
-    if (Object.keys(v).length) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch('http://localhost:8080/api/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: email, // Using email as username for now
-          password: pw,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Store the JWT token (you might want to use localStorage or a proper auth context)
-        localStorage.setItem('token', data.token);
-        router.push('/dashboard');
-      } else {
-        const error = await response.json();
-        setErrors({ email: error.message || 'Login failed' });
-      }
-    } catch (error) {
-      setErrors({ email: 'Network error. Please try again.' });
-    } finally {
-      setLoading(false);
+    const success = await login({ email, password });
+    if (success) {
+      router.push('/dashboard');
     }
   }
 
@@ -93,9 +60,9 @@ export default function LoginPage() {
               id="password"
               label="Password"
               type="password"
-              value={pw}
-              onChange={setPw}
-              error={errors.pw}
+              value={password}
+              onChange={setPassword}
+              error={errors.password}
             />
 
             {/* Submit */}
@@ -106,10 +73,10 @@ export default function LoginPage() {
             </div>
 
             <p className="text-center text-sm text-[#174B33]">
-              Don’t have an account?{' '}
-              <a href="/createaccount" className="text-[#174B33] hover:underline">
+              Don&apos;t have an account?{' '}
+              <Link href="/createaccount" className="text-[#174B33] hover:underline">
                 Register
-              </a>
+              </Link>
             </p>
           </form>
         </AuthCard>
