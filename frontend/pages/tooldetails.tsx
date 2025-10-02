@@ -3,16 +3,7 @@ import { useRouter } from 'next/router';
 import PrimaryButton from '@/components/PrimaryButton';
 import AuthCard from '@/components/AuthCard';
 import FormField from '@/components/FormField';
-
-
-interface Tool {
-  id: number;
-  name: string;
-  description: string;
-  user: {
-    username: string;
-  };
-}
+import Calendar from '@/components/Calendar';
 
 type ToolCardProps = {
     size: number;
@@ -24,14 +15,21 @@ type ToolCardProps = {
     description: string;
 };
 
+interface Tool {
+  id: number;
+  name: string;
+  description: string;
+  user: {
+    username: string;
+  };
+}
 
-
-export default function ToolCard({size, title, owner, place, price, description}: ToolCardProps){
+export default function TooldetailsPage({size, title, owner, place, price, description}: ToolCardProps){
     const [loading, setLoading] = React.useState(false);  
   
   return(
-      <section  style={{ maxWidth: 1000 }}>
-        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 text-left">
+      <section  style={{ maxWidth: 1000, alignContent:'center'}}>
+        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8">
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6" style={{width:size}}>
             
             {/* Left side of page */}
@@ -73,8 +71,11 @@ export default function ToolCard({size, title, owner, place, price, description}
             </section>
 
             {/* Right side of page */}
-            <section className='ml-40' style={{alignItems:'last-baseline', width:size/1.5}}>
-              <img src="/profilepic.png" width={size/3} alt=''/>
+            <section className='ml-40 content-right' style={{alignItems:'last-baseline', width:size/1.5}}>
+
+              <Calendar calendarSize={size/2} />
+              
+
 
               {/* Submit */}
                 <div className="flex justify-center">
