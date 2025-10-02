@@ -1,79 +1,102 @@
 import * as React from 'react';
-import { useRouter } from 'next/router';
 import PrimaryButton from '@/components/PrimaryButton';
-import AuthCard from '@/components/AuthCard';
-import FormField from '@/components/FormField';
+
+import {displayTool } from "../services/toolService";
+
+import { useRouter } from "next/router";
+import { useAuth } from "../hooks/auth";
+import { useYourTools } from "../hooks/tools";
 import Calendar from '@/components/Calendar';
 
-type ToolCardProps = {
-    size: number;
-    //image: string;
-    title: string;
-    owner: string;
-    place: string;
-    price: number;
-    description: string;
-};
 
-interface Tool {
-  id: number;
-  name: string;
-  description: string;
-  user: {
-    username: string;
-  };
-}
 
-export default function TooldetailsPage({size, title, owner, place, price, description}: ToolCardProps){
-    const [loading, setLoading] = React.useState(false);  
+export default function TooldetailsPage(){
+    const { isLoading: authLoading, isAuthenticated } = useAuth();
+    const { query, setQuery, tools, loading, error, retry } = useYourTools();
+    const router = useRouter();  
+    const tool = displayTool(tools[0].id, tools[0].description)
+
+    /* from other site*/
+     // Redirect to login if not authenticated
+      React.useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+          router.push('/');
+          return;
+        }
+      }, [isAuthenticated, authLoading, router]);
+    
+      // Show loading while checking authentication
+      if (authLoading) {
+        return (
+          <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+              <p className="text-gray-600 mt-2">Loading...</p>
+            </div>
+          </main>
+        );
+      }
+    
+      // Don't render anything if not authenticated (redirect will happen)
+      if (!isAuthenticated) {
+        return (
+          <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
+            <div className="text-center py-8">
+              <p className="text-gray-600">Redirecting to login...</p>
+            </div>
+          </main>
+        );
+      }
+      /* end from other site*/
   
   return(
-      <section  style={{ maxWidth: 1000, alignContent:'center'}}>
+      <section  style={{ alignContent:'center'}}>
         <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8">
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6" style={{width:size}}>
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 w-0.8">
             
             {/* Left side of page */}
-            <section style={{width: size/1.5}}>
+            <section className='w-0.4'>
                 {/* Image of tool*/}
-                <img src="https://verktygsboden.se/pub_images/original/87907.jpg" width={size/1.5} height={size/3} alt="Placeholder pic of hammer"/>
+                <img src="https://verktygsboden.se/pub_images/original/87907.jpg" className='w-0.2 h-0.1' alt="Placeholder pic of hammer"/>
               
                 {/* Title, place and price under tool*/}
-                <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6" style={{maxWidth:size/1.5}}>
+                <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6 w-0.1" >
                   <h2 className="text-2xl font-bold text-black">
-                    {title}
+                    {tools[0].name}
                   </h2>
                   <h2  className="text-2xl font-bold text-black">
-                  {price + " kr/dag"}
+                  {tools[0].price + " kr/dag"}
                   </h2>
                   <h2 className="text-2xl font-thin text-black">
-                  {place}
+                  {"place"}
                   </h2>
                 </div>
 
                 {/*Profile pic, name & stars*/}
-                <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6" style={{maxWidth:size/3, margin:8}}>
-                  <img src="/profilepic.png"  width={size/10} alt="" />
+                <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 w-0.5" style={{margin:8}}>
+                  <img src="/profilepic.png w-0.01" alt="" />
                   <section>
-                    <img src="/star (1).png" width={size/50} alt='star'/>
+                    <img src="/star (1).png w-0.05"  alt='star'/>
                     <p className="mt-2 text-2s font-bold text-black">
-                    {owner}
+                    {
+                  }
                     </p>
                   </section>
                 </div>
 
                 {/* Description */}
-                <div style={{maxWidth:size/1.5, maxHeight:size/3}} className="rounded-2xl bg-white shadow-sm ring-1 ring-black/10 p-8 text-left">
+                <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/10 p-8 text-left w-0.1">
                   <p className="mt-3 text-black" style={{ fontSize: "0.9rem" }}>
-                  {description}
+                  {tools[0].description}
                   </p>
                 </div>
                 
             </section>
 
             {/* Right side of page */}
-            <section className='ml-40 content-right' style={{alignItems:'last-baseline', width:size/1.5}}>
+            <section className='ml-40 content-right w-0.6' style={{alignItems:'last-baseline'}}>
 
-              <Calendar calendarSize={size/2} />
+              <Calendar calendarSize={500} />
               
 
 

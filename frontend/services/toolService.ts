@@ -142,5 +142,32 @@ export async function deleteTool(id: number): Promise<void> {
   }
 }
 
+export async function displayTool(id: number, description: string): Promise<Tool> {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ description }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch tool: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching tool:', error);
+    throw error;
+  }
+}
+
 // Default tool image URL - you can change this to any image you prefer
 export const DEFAULT_TOOL_IMAGE = '';
