@@ -10,6 +10,7 @@ import Calendar from '@/components/Calendar';
 
 
 
+
 export default function TooldetailsPage(){
     //const { isLoading: authLoading, isAuthenticated } = useAuth();
     const router = useRouter();  
@@ -59,10 +60,11 @@ export default function TooldetailsPage(){
                 </div>
 
                 {/*Profile pic, name & stars*/}
+                <img src="frontend/public/profilepic.png" alt="" />
                 <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 w-0.5" style={{margin:8}}>
-                  <img src="/profilepic.png w-0.01" alt="" />
+                  <img src="frontend/public/profilepic.png" alt="" />
                   <section>
-                    <img src="/star (1).png w-0.05"  alt='star'/>
+                    <img src="/star (1).png"  alt='star'/>
                     <p className="mt-2 text-2s font-bold text-black">
                     {
                   }
@@ -83,7 +85,7 @@ export default function TooldetailsPage(){
             <section className='pl-10' style={{alignItems:'last-baseline'}}>
 
               <Calendar calendarSize={400} />
-              
+
 
 
               {/* Submit */}
