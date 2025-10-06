@@ -142,7 +142,7 @@ export async function deleteTool(id: number): Promise<void> {
   }
 }
 
-export async function displayTool(id: number, description: string): Promise<Tool> {
+export async function displayTool(id: number): Promise<Tool> {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -155,7 +155,6 @@ export async function displayTool(id: number, description: string): Promise<Tool
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ description }),
     });
 
     if (!response.ok) {

@@ -49,7 +49,7 @@ export default function Calendar({disabled, calendarSize}:ButtonProps){
 
    function generateDates(){
     return(
-        <div className="dates grid grid-cols-5 md:grid-cols-7" style={{alignContent:'center'}}>
+        <div className="grid grid-cols-5 md:grid-cols-7" style={{alignContent:'center'}}>
             {[...Array(firstDayOfMonth).keys()].map((_, index)=> (
                 <span key={`empty-${index}`}/>
             ))}
