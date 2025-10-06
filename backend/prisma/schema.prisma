@@ -21,6 +21,7 @@ model User {
   surname   String?
   tools     Tool[]
   sentRequests      Request[] @relation("UserAsRenter")
+  bookings  Booking[] @relation("UserAsBookingRenter")
 }
 
 model Tool {
@@ -32,6 +33,7 @@ model Tool {
   userId      Int        
   user        User       @relation(fields: [userId], references: [id])
   requests    Request[]  @relation("ToolToRequest")
+  bookings    Booking[]  @relation("ToolAsBookingTool")
 }
 
 model Request {
@@ -45,4 +47,19 @@ model Request {
   pending     Boolean  @default(true)
   accepted    Boolean  @default(false)
   price       Int?
+  booking     Booking?
+}
+
+model Booking {
+  id          Int      @id @default(autoincrement())
+  requestId   Int      @unique
+  request     Request  @relation(fields: [requestId], references: [id])
+  renterId    Int
+  renter      User     @relation("UserAsBookingRenter", fields: [renterId], references: [id])
+  toolId      Int
+  tool        Tool     @relation("ToolAsBookingTool", fields: [toolId], references: [id])
+  startDate   DateTime
+  endDate     DateTime
+  price       Int
+  createdAt   DateTime @default(now())
 }
