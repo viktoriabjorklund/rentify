@@ -1,4 +1,6 @@
 import prisma from '../prismaClient.js';
+import { createBookingFromRequest } from './bookingModel.js';
+
 
 export async function getAllSentRequests(userId) {
     return prisma.request.findMany({
@@ -134,7 +136,7 @@ export async function deleteRequest(id) {
 }
 
 export async function updateRequest(id, data) {
-  return prisma.request.update({
+  const updated = await prisma.request.update({
     where: { id: parseInt(id) },
     data: {
       pending: data.pending,
@@ -142,6 +144,18 @@ export async function updateRequest(id, data) {
       price: data.price
     },
   });
+
+  if (updated.accepted && !updated.pending) {
+    const existingBooking = await prisma.booking.findUnique({
+      where: { requestId: updated.id }
+    });
+
+    if (!existingBooking) {
+      await createBookingFromRequest(updated.id);
+    }
+  }
+
+  return updated;
 }
 
   
