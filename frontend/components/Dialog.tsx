@@ -130,14 +130,25 @@ export const DialogButton: React.FC<{
   const variantClasses = {
     primary: "bg-[#2FA86E] text-white hover:bg-[#27935F] focus:ring-emerald-500",
     secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500",
-    danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+    danger: "text-white focus:ring-red-500"
+  };
+
+  const getButtonStyle = () => {
+    if (variant === 'danger') {
+      return {
+        backgroundColor: '#E95A5A',
+        '--hover-bg': '#D54A4A'
+      } as React.CSSProperties;
+    }
+    return {};
   };
 
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`${baseClasses} ${variantClasses[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`${baseClasses} ${variantClasses[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${variant === 'danger' ? 'hover:opacity-90' : ''}`}
+      style={getButtonStyle()}
     >
       {children}
     </button>

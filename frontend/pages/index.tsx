@@ -45,6 +45,17 @@ export default function Home() {
         <div className="mt-8 w-full flex justify-center">
           <SearchBar />
         </div>
+        <div className="mt-4 text-center">
+        <a className="text-emerald-900">
+            Don't know what you're looking for? Find out&nbsp;
+          </a>
+          <a 
+            href="/searchpage" 
+            className="text-emerald-900 hover:text-emerald-700 transition-colors underline"
+          >
+             here!
+          </a>
+        </div>
       </section>
 
       {/* Why section */}
