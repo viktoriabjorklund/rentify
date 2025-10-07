@@ -38,7 +38,7 @@ export default function Calendar({disabled, calendarSize}:ButtonProps){
                 ? (setStartDate(clickedDate), setEndDate(clickedDate))
                 : clickedDate.getDate() > startDate.getDate() && startDate.getDate() != currentDate.getDate() && startDate.getDate() != clickedDate.getDate()
                 ? setEndDate(clickedDate)
-                : setEndDate(currentDate)
+                : setEndDate(clickedDate)
             }
             console.log(startDate + " " + endDate)      
     }
@@ -57,7 +57,7 @@ export default function Calendar({disabled, calendarSize}:ButtonProps){
                <button key={day + 1} className={classNames(
                     'pt-1 pb-1 text-center h-9 mt-1 mb-1',
                     day+1 ==currentDate.getDate() && currentMonth==currentDate.getMonth() 
-                    && currentYear==currentDate.getFullYear() && 'text-emerald-800 text-center rounded-full bg-gray-200', 
+                    && currentYear==currentDate.getFullYear() && 'text-emerald-800 text-center rounded-xl bg-gray-200', 
                     '',
                     day+1 < currentDate.getDate() && currentMonth==currentDate.getMonth() 
                     && currentYear==currentDate.getFullYear() && 'text-gray-400',
