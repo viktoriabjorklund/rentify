@@ -37,17 +37,17 @@ POST http://localhost:8080/api/users/login
 Content-Type: application/json
 
 {
- "username": "<username>",
- "password": "<password>"
+ "username": "",
+ "password": ""
 }
 
 ### TEST CREATE REQUEST qwerty
 POST http://localhost:8080/api/requests
 Content-Type: application/json
-Authorization: Bearer <jwt token>
+Authorization: Bearer <jwt-token>
 
 {
-  "toolId": 7,
+  "toolId": 10,
   "startDate": "2025-10-01T00:00:00.000Z",
   "endDate": "2025-10-05T00:00:00.000Z",
   "price": 200
@@ -59,11 +59,16 @@ Authorization: Bearer <jwt token>
 
 
 ### Update a request
-PUT http://localhost:8080/api/requests/2
-Authorization: Bearer <jwt token>
+PUT http://localhost:8080/api/requests/16
+Authorization: Bearer <jwt-token>
 Content-Type: application/json
 
 {
   "pending": false,
-  "accepted": true
+  "accepted": false
 }
+
+### Get all bookings
+GET http://localhost:8080/api/bookings
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
