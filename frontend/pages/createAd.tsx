@@ -1,9 +1,19 @@
 import { useState } from "react";
+import { useYourTools } from "../hooks/tools/useYourTools";
 
 export default function CreateAd() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
+  const { user, createTool } = useYourTools();
 
+  // Form state
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [place, setPlace] = useState("");
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+
+  // Handle file selection + preview
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
 
@@ -18,15 +28,61 @@ export default function CreateAd() {
     reader.readAsDataURL(file);
   };
 
+  // Handle submit
+// Handle submit
+const handleAddItem = async () => {
+  if (!user) {
+    return alert("You must be logged in");
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("name", title);
+    formData.append("description", description);
+    formData.append("price", price);
+    formData.append("location", place);
+    if (selectedFile) formData.append("photo", selectedFile); // 👈 must match upload.single('photo')
+
+    const token = localStorage.getItem("token");
+
+    const res = await fetch("http://localhost:8080/api/tools", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to create tool");
+    }
+
+    alert("Ad created!");
+    setTitle("");
+    setCategory("");
+    setPlace("");
+    setPrice("");
+    setDescription("");
+    setSelectedFile(null);
+    setPreview("");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to create ad");
+  }
+};
+
+
   return (
     <div className="flex h-screen items-center justify-center text-black bg-gray-100">
-      <div className="flex flex-col items-center justify-center w-3/4 h-3/4 gap-8" id="content">
+      <div className="flex flex-col items-center justify-center w-3/4 h-3/4 gap-8">
         <p className="text-4xl text-[#3A7858]">Create Ad</p>
 
         <div className="flex flex-col gap-12 bg-white p-8 rounded-lg">
-          <div className="flex gap-8" id="content-1">
+
+          <div className="flex gap-8">
             {/* Image Upload */}
-            <div className="basis-1/2 items-center justify-center flex">
+            <div className="basis-1/2 flex items-center justify-center">
               <label className="cursor-pointer">
                 {preview ? (
                   <img
@@ -49,15 +105,24 @@ export default function CreateAd() {
             </div>
 
             {/* Form */}
-            <div className="basis-1/2 justify-center flex flex-col gap-8 p-4">
+            <div className="basis-1/2 flex flex-col gap-4 p-4">
               <div className="flex gap-2">
                 <p>Title:</p>
-                <input type="text" className="border border-black rounded-lg px-2 py-1" />
+                <input
+                  type="text"
+                  className="border border-black rounded-lg px-2 py-1"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
               </div>
 
               <div className="flex gap-2">
-                <p>Category: </p>
-                <select className="border border-black rounded-lg px-2 py-1 w-full">
+                <p>Category:</p>
+                <select
+                  className="border border-black rounded-lg px-2 py-1 w-full"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
                   <option value=""></option>
                   <option value="electronics">Electronics</option>
                   <option value="furniture">Furniture</option>
@@ -65,8 +130,12 @@ export default function CreateAd() {
                   <option value="other">Other</option>
                 </select>
 
-                <p>Place: </p>
-                <select className="border border-black rounded-lg px-2 py-1 w-full">
+                <p>Place:</p>
+                <select
+                  className="border border-black rounded-lg px-2 py-1 w-full"
+                  value={place}
+                  onChange={(e) => setPlace(e.target.value)}
+                >
                   <option value=""></option>
                   <option value="stockholm">Stockholm</option>
                   <option value="gothenburg">Gothenburg</option>
@@ -76,22 +145,35 @@ export default function CreateAd() {
               </div>
 
               <div className="flex gap-2">
-                <p>Price: </p>
-                <input type="text" className="border border-black rounded-lg px-2 py-1" />
-                <p> SEK per day</p>
+                <p>Price:</p>
+                <input
+                  type="text"
+                  className="border border-black rounded-lg px-2 py-1"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                />
+                <p>SEK per day</p>
               </div>
 
               <div className="flex flex-col gap-2">
-                <p>Description: </p>
-                <input type="text" className="border border-black rounded-lg px-2 py-1" />
+                <p>Description:</p>
+                <input
+                  type="text"
+                  className="border border-black rounded-lg px-2 py-1"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </div>
             </div>
           </div>
 
           {/* Button */}
-          <div className="flex gap-4 justify-end items-center" id="content-2">
+          <div className="flex gap-4 justify-end items-center">
             <p className="text-2xl">Add Item</p>
-            <button className="w-8 h-8 bg-[#3A7858] text-white rounded-lg flex items-center justify-center" onClick={() => alert('Ad created!')}>
+            <button
+              className="w-8 h-8 bg-[#3A7858] text-white rounded-lg flex items-center justify-center cursor-pointer"
+              onClick={handleAddItem}
+            >
               +
             </button>
           </div>

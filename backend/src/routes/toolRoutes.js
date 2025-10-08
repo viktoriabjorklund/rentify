@@ -15,7 +15,7 @@ router.post(
   toolController.createTool
 );
 
-router.put('/:id', authMiddleware, toolController.updateTool);
+router.put('/:id', authMiddleware, upload.single('photo'), toolController.updateTool);
 router.delete('/:id', authMiddleware, toolController.deleteTool);
 router.get('/:id', authMiddleware, toolController.displayTool);
 router.get('/mytools', authMiddleware, toolController.getMyTools);
