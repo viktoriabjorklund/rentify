@@ -1,4 +1,6 @@
-import prisma from '../prismaClient.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function createBookingFromRequest(requestId) {
   const request = await prisma.request.findUnique({

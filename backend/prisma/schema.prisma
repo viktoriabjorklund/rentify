@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -48,6 +49,7 @@ model Request {
   accepted    Boolean  @default(false)
   price       Int?
   booking     Booking?
+  viewed      Boolean  @default(false)
 }
 
 model Booking {

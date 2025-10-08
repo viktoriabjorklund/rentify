@@ -1,29 +1,32 @@
-import prisma from '../prismaClient.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 import { createBookingFromRequest } from './bookingModel.js';
 
 
 export async function getAllSentRequests(userId) {
-    return prisma.request.findMany({
-      where: { renterId: userId },
-      include: {
-        tool: {
-          select: {
-            id: true,
-            name: true,
-            location: true,
-            price: true,
-            user: {
-              select: {
-                id: true,
-                username: true,
-                name: true,
-                surname: true
-              }
+  return prisma.request.findMany({
+    where: { renterId: userId },
+    include: {
+      tool: {
+        select: {
+          id: true,
+          name: true,
+          location: true,
+          price: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              surname: true
             }
           }
         }
       }
-    });
+    }
+  });
+  
   }
   
   export async function getAllRecievedRequests(userId) {
@@ -36,6 +39,7 @@ export async function getAllSentRequests(userId) {
         pending: true,
         accepted: true,
         price: true,
+        viewed: true,
         tool: {
           select: {
             id: true,
@@ -86,7 +90,8 @@ export async function createRequest({ renterId, toolId, startDate, endDate, pric
           endDate: true,
           pending: true,
           accepted: true,
-          price: true
+          price: true,
+          viewed: true
         }
       })
       
@@ -157,5 +162,17 @@ export async function updateRequest(id, data) {
 
   return updated;
 }
+
+export async function updateRequestViewStatus(id, viewed) {
+  return prisma.request.update({
+    where: { id: parseInt(id) },
+    data: { viewed },
+    select: {
+      id: true,
+      viewed: true,
+    },
+  });
+}
+
 
   
