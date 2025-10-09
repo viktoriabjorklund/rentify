@@ -1,4 +1,6 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+import { API_URL } from "../api.js"
+
 // Model layer in MVVM. Can reuse this code instead of writing it again.
 export type Tool = {
   id: number;
@@ -18,7 +20,7 @@ export type Tool = {
 
 export async function getAllTools(): Promise<Tool[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/tools`, {
+    const response = await fetch(`${API_URL}/api/tools`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -44,7 +46,7 @@ export async function getUserTools(): Promise<Tool[]> {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/tools/mytools`, {
+    const response = await fetch(`${API_URL}/api/tools/mytools`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -71,7 +73,7 @@ export async function createTool(data: { name: string; price: number; location: 
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/tools`, {
+    const response = await fetch(`${API_URL}/api/tools`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -99,7 +101,7 @@ export async function updateTool(id: number, description: string): Promise<Tool>
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
+    const response = await fetch(`${API_URL}/api/tools/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -126,7 +128,7 @@ export async function deleteTool(id: number): Promise<void> {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
+    const response = await fetch(`${API_URL}/api/tools/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
