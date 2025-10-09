@@ -19,6 +19,9 @@ app.use('/api/tools', toolRoutes);
 app.use('/api/requests', requestRoutes)
 app.use('/api/bookings', bookingRoutes);
 
+app.get('/', (req, res) => {
+  res.send('🚀 Rentify backend is running!');
+});
 
 app.listen(PORT, () => {
   console.log(`Server has started on: ${PORT}`);
