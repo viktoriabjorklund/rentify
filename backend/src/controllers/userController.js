@@ -36,7 +36,7 @@ export async function login(req, res) {
 
         const passwordIsValid = bcrypt.compareSync(password, user.password)
         if (!passwordIsValid) { return res.status(401).send({ message: "Invalid password" }) }
-// jag la till användardata i login-responsen så att vi har det ifall vi vill visa användarnamn eller andra detaljer i framtiden, typ när de loggar in (välkommen tillbaka XX)
+    // jag la till användardata i login-responsen så att vi har det ifall vi vill visa användarnamn eller andra detaljer i framtiden, typ när de loggar in (välkommen tillbaka XX)
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' })
         res.json({ 
             token,
@@ -53,3 +53,39 @@ export async function login(req, res) {
     }
 }
 
+export async function updateUser(req, res) {
+  try {
+    const { name, surname, password } = req.body;
+    const { id } = req.params;
+    const updated = await userModel.updateUser(id, name, surname, password);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export async function deleteUser(req, res) {
+  try {
+    const { id } = req.params;
+    await userModel.deleteUser(id);
+    res.json({ message: "User deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+
+export async function displayUser(req, res) {
+  try {
+    const { id } = req.params;
+    const user = await userModel.displayUser(id);
+
+    if (!user) {
+      return res.status(404).json({ error: "Tool not found" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

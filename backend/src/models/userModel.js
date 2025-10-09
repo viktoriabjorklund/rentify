@@ -20,3 +20,24 @@ export async function getAllUsers() {
     include: { tools: true },
   });
 }
+
+export async function updateUser(id, name, surname, password) {
+  return prisma.user.update({
+    where: { id: parseInt(id) },
+    data: { name, surname, password },
+    include: { user: true },
+  });
+}
+
+export async function deleteUser(id) {
+  return prisma.user.delete({
+    where: { id: parseInt(id) },
+  });
+}
+
+
+export async function displayUser(id) {
+  return prisma.user.findUnique({
+    where: { id: parseInt(id)},
+  });
+}
