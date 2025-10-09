@@ -9,17 +9,25 @@ export type Request = {
 
 export type RequestData = {
   renterId?: number;
-  startDate: Date;
-  endDate: Date;
+  startDate: any[];
+  endDate: any[];
   toolId?: number;
+  pending: Boolean;
+  accepted: Boolean;
 };
 
 export async function createRequest(data: RequestData): Promise<Request> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/requests/`, {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/requests/${[data.toolId]}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });

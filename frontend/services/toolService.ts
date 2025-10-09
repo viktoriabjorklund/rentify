@@ -161,7 +161,8 @@ export async function displayTool(id: number): Promise<Tool> {
       throw new Error(`Failed to fetch tool: ${response.statusText}`);
     }
 
-    return await response.json();
+    const userTool = await response.json();
+    return userTool
   } catch (error) {
     console.error('Error fetching tool:', error);
     throw error;

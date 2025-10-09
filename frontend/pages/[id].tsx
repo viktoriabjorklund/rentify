@@ -26,7 +26,7 @@ export default function TooldetailsPage(){
     const [tool, setTool] = React.useState<Tool | null >(null);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null >(null);
-    const [totalPrice, setTotalPrice] = React.useState(0)
+    const [totalDays, setTotalDays] = React.useState(0)
 
     React.useEffect(() => {
       if(firstLoad){
@@ -42,8 +42,6 @@ export default function TooldetailsPage(){
     }
     )
 
-    //React.useEffect(()=>{getItem('startdate')})
-    //React.useEffect(()=>{getItem('enddate')})
     React.useEffect(()=>{window.addEventListener('storage', () => {
     changeTotal(getItem('startdate'), getItem('enddate'))})})
 
@@ -51,7 +49,7 @@ export default function TooldetailsPage(){
     if (error) return <p className='text-red-600'>Error: {error}</p>
     if (!tool) return <p>No tool found</p>
 
-async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
   
     // Show loading while checking authentication
     if (authLoading) {
@@ -75,14 +73,16 @@ async function onSubmit(e: React.FormEvent) {
         </main>
       );
     }
-    const success = await createRequest({ renterId:user?.id, startDate: getItem("startdate"), endDate:getItem("enddate"), toolId:tool?.id });
+
+    const success = await createRequest({ renterId: tool?.user.id, startDate: getItem("startdate"), endDate:getItem("enddate"), toolId:tool?.id || 2, pending:true, accepted:false });
+    
     if (success) {
-      router.push('/dashboard');
+      router.push('/');
     }
   }
 
 async function changeTotal(startdate:any[], enddate:any[]){
-      setTotalPrice((enddate[0]-startdate[0])+(enddate[1]-startdate[1]) + (enddate[2]-startdate[2]))
+      setTotalDays((enddate[0]-startdate[0])+(enddate[1]-startdate[1]) + (enddate[2]-startdate[2]))
     }
 
   return(
@@ -104,21 +104,23 @@ async function changeTotal(startdate:any[], enddate:any[]){
                   {tool.price + " kr/day"}
                   </h2>
                   <h2 className="text-2xl font-thin text-black">
-                  {tool.location}
+                  {tool.location +
+                  console.log(tool.user)}
                   </h2>
                 </div>
 
                 {/*Profile pic, name & stars*/}
-                <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 w-0.5" style={{margin:8}}>
+                <section className='w-3/10'>
+                <div className="mt-5 mb-5 grid grid-cols-1 md:grid-cols-2 gap-6 text-black">
                   <img src="/profilepic.png" alt="" />
-                  <section>
-                    <img src="/star (1).png"  alt='star'/>
-                    <p className="mt-2 text-2s font-bold text-black">
-                    {
-                  }
+                  <div className='grid grid-cols-2 md:grid-cols-1'>
+                    <img src="/star (1).png"  alt='star' className='w-2/10'/>
+                    <p className="text-2s font-bold text-black">
+                    {tool.user.name || tool.user.username}
                     </p>
-                  </section>
+                 </div>
                 </div>
+                </section>
 
                 {/* Description */}
                 <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/10 p-8 text-left w-8/10">
@@ -135,7 +137,7 @@ async function changeTotal(startdate:any[], enddate:any[]){
               <Calendar calendarSize={400} />
           
               <div className='content-center ml-5 pl-25 table table-full'>
-                  <p className='text-lg pb-2 pl-5 pr-5 table-cell border-b border-gray-400'>{"Total price: "+ (totalPrice+1)*tool.price}</p>
+                  <p className='text-lg pb-2 pl-5 pr-5 table-cell border-b border-gray-400'>{"Total price: "+ (totalDays+1)*tool.price}</p>
               </div>
 
               {/* Submit */}
