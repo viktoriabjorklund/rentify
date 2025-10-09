@@ -4,6 +4,9 @@ import userRoutes from './routes/userRoutes.js';
 import toolRoutes from './routes/toolRoutes.js';
 import requestRoutes from './routes/requestRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
