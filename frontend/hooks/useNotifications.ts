@@ -20,16 +20,18 @@ export function useNotifications() {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const response = await fetch(`${API_BASE_URL}/api/bookings`, {
+        // Fetch received requests (people wanting to rent YOUR tools)
+        const response = await fetch(`${API_BASE_URL}/api/requests/received`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
 
         if (response.ok) {
-          const bookings = await response.json();
-          // Count bookings as notifications
-          setCount(bookings.length);
+          const requests = await response.json();
+          // Count only unviewed, pending requests
+          const unviewedCount = requests.filter((req: any) => !req.viewed && req.pending).length;
+          setCount(unviewedCount);
         }
       } catch (error) {
         console.error('Failed to fetch notification count:', error);
@@ -38,7 +40,7 @@ export function useNotifications() {
 
     fetchNotificationCount();
 
-    // Optionally, poll for updates every 30 seconds
+    // poll for updates every 30 seconds
     const interval = setInterval(fetchNotificationCount, 30000);
 
     return () => clearInterval(interval);
