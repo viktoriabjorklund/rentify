@@ -7,3 +7,4 @@ export { useSearchSort } from './useSearchSort';
 
 // Re-export types
 export type { SortOption } from './useSearchSort';
+

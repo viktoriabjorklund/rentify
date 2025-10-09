@@ -86,4 +86,16 @@ export async function updateRequest(req, res) {
       res.status(500).json({ error: err.message });
     }
   }
+
+  export async function markRequestAsViewed(req, res) {
+    const { id } = req.params;
+  
+    try {
+      const updated = await requestModel.updateRequestViewStatus(id, true);
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+  
   
