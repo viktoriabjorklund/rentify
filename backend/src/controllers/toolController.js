@@ -1,5 +1,4 @@
 import * as toolModel from '../models/toolModel.js';
-import prisma from '../prismaClient.js';
 
 function toNumberOrNull(v) {
   if (v === '' || v === undefined || v === null) return null;
@@ -55,10 +54,8 @@ export async function updateTool(req, res) {
 
     const toolId = Number(req.params.id);
 
-    const existing = await prisma.tool.findUnique({
-      where: { id: toolId },
-      select: { userId: true },
-    });
+    const existing = await toolModel.findToolOwner(toolId);
+
     if (!existing) return res.status(404).json({ error: 'Tool not found' });
     if (existing.userId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
 
@@ -85,10 +82,8 @@ export async function deleteTool(req, res) {
   try {
     const toolId = Number(req.params.id);
 
-    const existing = await prisma.tool.findUnique({
-      where: { id: toolId },
-      select: { userId: true },
-    });
+    const existing = await toolModel.findToolOwner(toolId);
+    
     if (!existing) return res.status(404).json({ error: 'Tool not found' });
     if (existing.userId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
 

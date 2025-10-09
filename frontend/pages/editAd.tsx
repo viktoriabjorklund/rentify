@@ -116,7 +116,7 @@ export default function EditAd() {
 
       if (!res.ok) throw new Error(bodyText || `Failed: ${res.status}`);
 
-      router.push(`/detailView?id=${id}`);
+      router.push(`/detailview?id=${id}`);
     } catch (e: any) {
       console.error("PUT error:", e);
       setError(e?.message || "Failed to save");
@@ -210,7 +210,7 @@ export default function EditAd() {
           <div className="flex gap-4 justify-end">
             <button
               className="border rounded-lg px-4 py-2 bg-gray-300 text-white cursor-pointer"
-              onClick={() => router.push(`/detailView?id=${id}`)}
+              onClick={() => router.push(`/detailview?id=${id}`)}
               disabled={saving}
             >
               Cancel

@@ -5,7 +5,16 @@ const prisma = new PrismaClient();
 export async function getAllTools() {
   return prisma.tool.findMany({
     orderBy: { id: "desc" },
-    include: { user: true },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          surname: true,
+        },
+      },
+    },
   });
 }
 
@@ -28,7 +37,6 @@ export async function createTool({ name, description, price, location, photoURL,
       photoURL: photoURL ?? "",
       userId: Number(userId),
     },
-    include: { user: true },
   });
 }
 
@@ -48,13 +56,12 @@ export async function updateTool(id, arg) {
 
   // Optional: early no-op guard
   if (Object.keys(data).length === 0) {
-    return prisma.tool.findUnique({ where: { id: toolId }, include: { user: true } });
+    return prisma.tool.findUnique({ where: { id: toolId }});
   }
 
   return prisma.tool.update({
     where: { id: toolId },
     data,
-    include: { user: true },
   });
 }
 
@@ -68,7 +75,6 @@ export async function deleteTool(id) {
 export async function displayTool(id) {
   return prisma.tool.findUnique({
     where: { id: Number(id) },
-    include: { user: true },
   });
 }
 
@@ -76,6 +82,36 @@ export async function getToolsByUser(userId) {
   return prisma.tool.findMany({
     where: { userId: Number(userId) },
     orderBy: { id: "desc" },
-    include: { user: true },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          surname: true,
+        },
+      },
+    },
+  });
+}
+
+
+export async function findToolOwner(id) {
+  const toolId = Number(id);
+  if (!Number.isFinite(toolId)) throw new Error("Invalid id");
+  return prisma.tool.findUnique({
+    where: { id: toolId },
+    select: { id: true, userId: true },
+  });
+}
+
+export async function findToolPublic(id) {
+  const toolId = Number(id);
+  if (!Number.isFinite(toolId)) throw new Error("Invalid id");
+  return prisma.tool.findUnique({
+    where: { id: toolId },
+    include: {
+      user: { select: { id: true, username: true, name: true, surname: true } },
+    },
   });
 }

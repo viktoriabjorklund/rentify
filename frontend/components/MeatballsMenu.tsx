@@ -15,7 +15,7 @@ export default function MeatballsMenu({ toolId, onDeletedRedirect }: Props) {
 
   const handleEdit = () => {
     setOpen(false);
-    router.push(`/editAd?id=${toolId}`);
+    router.push(`/editad?id=${toolId}`);
   };
 
   const handleDelete = async () => {

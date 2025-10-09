@@ -34,11 +34,10 @@ export async function login(req, res) {
 
         if (!user) { return res.status(404).send({ message: "User not found" }) }
 
+        
         const passwordIsValid = bcrypt.compareSync(password, user.password)
- //     const passwordIsValid = bcrypt.compareSync(password, user.password) || password === user.password;
- //     raden ovan som är en kommentar användes för att jag skulle kunna logga in via username och password jag la i prisma, det ska inte finnas med i slutändan men jag har kvar den för att kunna testa min kod
- //     kommer tas bort senare
         if (!passwordIsValid) { return res.status(401).send({ message: "Invalid password" }) }
+        
 // jag la till användardata i login-responsen så att vi har det ifall vi vill visa användarnamn eller andra detaljer i framtiden, typ när de loggar in (välkommen tillbaka XX)
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' })
         res.json({ 

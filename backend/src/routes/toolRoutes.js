@@ -16,10 +16,10 @@ router.post(
   toolController.createTool
 );
 
+router.get('/mytools', authMiddleware, toolController.getMyTools);
 router.put('/:id', authMiddleware, upload.single('photo'), toolController.updateTool);
-router.delete('/:id', authMiddleware, toolController.deleteTool); 
-router.get('/mytools', authMiddleware, toolController.getMyTools); 
-router.get('/:id', authMiddleware, toolController.displayTool); 
+router.delete('/:id', authMiddleware, toolController.deleteTool);
+router.get('/:id', authMiddleware, toolController.displayTool);
 
 
 export default router;
