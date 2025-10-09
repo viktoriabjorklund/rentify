@@ -31,8 +31,8 @@ export default function Calendar({disabled, calendarSize}:ButtonProps){
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
   const firstDayOfMonth = new Date(currentYear, currentMonth, 0).getDay()
   
-  {React.useEffect(()=>{setItem('startdate',[startDate.getDate(),startDate.getMonth()+1,startDate.getFullYear()])})}
-  {React.useEffect(()=>{setItem('enddate',[endDate.getDate(),endDate.getMonth()+1,endDate.getFullYear()])})}
+  {React.useEffect(()=>{setItem('startdate',startDate)})}
+  {React.useEffect(()=>{setItem('enddate',endDate)})}
 
   async function prevMonth() {
     setCurrentMonth((prevMonth) => (prevMonth === 0 ? 11: prevMonth - 1))

@@ -39,6 +39,7 @@ export async function deleteTool(id) {
 export async function displayTool(id) {
   return prisma.tool.findUnique({
     where: { id: parseInt(id)},
+    include: { user: true }, // la till för att frontend ska få användardata 
   });
 }
 

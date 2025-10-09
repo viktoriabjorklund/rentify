@@ -7,18 +7,19 @@ import { useAuth } from "../hooks/auth";
 import Calendar from '@/components/Calendar';
 import {createRequest} from "@/services/requestService";
 
+// function for gettiung dates from local storage
 export function getItem(key: string) {
   try {
     const item = localStorage.getItem(key);
     window.removeEventListener('storage', ()=> {})
-    return (item ? JSON.parse(item) : undefined)
+    return (item ? new Date(JSON.parse(item)) : undefined)
   } catch (error) {
     console.error('Error reading from localStorage', error);
   }
 }
 
 export default function TooldetailsPage(){
-    const { isLoading: authLoading, isAuthenticated, user } = useAuth();
+    const { isLoading: authLoading, isAuthenticated } = useAuth();
     const router = useRouter();  
     const { id } = router.query;
     const [firstLoad, setFirstLoad] = React.useState(true)
@@ -43,7 +44,7 @@ export default function TooldetailsPage(){
     )
 
     React.useEffect(()=>{window.addEventListener('storage', () => {
-    changeTotal(getItem('startdate'), getItem('enddate'))})})
+    changeTotal(getItem('startdate')||new Date(), getItem('enddate')||new Date())})})
 
     if (loading) return <p>Loading tool...</p>
     if (error) return <p className='text-red-600'>Error: {error}</p>
@@ -73,16 +74,17 @@ export default function TooldetailsPage(){
         </main>
       );
     }
-
-    const success = await createRequest({ renterId: tool?.user.id, startDate: getItem("startdate"), endDate:getItem("enddate"), toolId:tool?.id || 2, pending:true, accepted:false });
+    if (tool){
+    const success = await createRequest({ startDate: getItem("startdate")||new Date(), endDate:getItem("enddate")||new Date(), toolId:tool.id, price:tool.price, pending:true, accepted:false });
     
     if (success) {
       router.push('/');
-    }
+    }}
+    if (!tool){console.info("No tool")}
   }
 
-async function changeTotal(startdate:any[], enddate:any[]){
-      setTotalDays((enddate[0]-startdate[0])+(enddate[1]-startdate[1]) + (enddate[2]-startdate[2]))
+async function changeTotal(startdate:Date, enddate:Date){
+      setTotalDays((enddate.getDate()-startdate.getDate())+(enddate.getMonth()-startdate.getMonth()) + (enddate.getFullYear()-startdate.getFullYear()))
     }
 
   return(
@@ -104,8 +106,7 @@ async function changeTotal(startdate:any[], enddate:any[]){
                   {tool.price + " kr/day"}
                   </h2>
                   <h2 className="text-2xl font-thin text-black">
-                  {tool.location +
-                  console.log(tool.user)}
+                  {tool.location}
                   </h2>
                 </div>
 
@@ -116,7 +117,7 @@ async function changeTotal(startdate:any[], enddate:any[]){
                   <div className='grid grid-cols-2 md:grid-cols-1'>
                     <img src="/star (1).png"  alt='star' className='w-2/10'/>
                     <p className="text-2s font-bold text-black">
-                    {tool.user.name || tool.user.username}
+                    {tool.user?.username || tool.user?.name}
                     </p>
                  </div>
                 </div>

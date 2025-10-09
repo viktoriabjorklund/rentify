@@ -8,10 +8,10 @@ export type Request = {
 };
 
 export type RequestData = {
-  renterId?: number;
-  startDate: any[];
-  endDate: any[];
+  startDate: Date;
+  endDate: Date;
   toolId?: number;
+  price: number;
   pending: Boolean;
   accepted: Boolean;
 };
@@ -23,7 +23,7 @@ export async function createRequest(data: RequestData): Promise<Request> {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/requests/${[data.toolId]}`, {
+    const response = await fetch(`${API_BASE_URL}/api/requests/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
