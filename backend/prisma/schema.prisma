@@ -1,11 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -15,53 +9,53 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  username  String  @unique
-  password  String
-  name      String?
-  surname   String?
-  tools     Tool[]
-  sentRequests      Request[] @relation("UserAsRenter")
-  bookings  Booking[] @relation("UserAsBookingRenter")
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  password     String
+  name         String?
+  surname      String?
+  bookings     Booking[] @relation("UserAsBookingRenter")
+  sentRequests Request[] @relation("UserAsRenter")
+  tools        Tool[]
 }
 
 model Tool {
-  id          Int     @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
   description String
-  price       Int?       
-  location    String?    
-  userId      Int        
-  user        User       @relation(fields: [userId], references: [id])
-  requests    Request[]  @relation("ToolToRequest")
-  bookings    Booking[]  @relation("ToolAsBookingTool")
+  userId      Int
+  location    String?
+  price       Int?
+  bookings    Booking[] @relation("ToolAsBookingTool")
+  requests    Request[] @relation("ToolToRequest")
+  user        User      @relation(fields: [userId], references: [id])
 }
 
 model Request {
-  id          Int      @id @default(autoincrement())
-  renterId    Int
-  renter      User     @relation("UserAsRenter", fields: [renterId], references: [id])
-  toolId      Int
-  tool        Tool     @relation("ToolToRequest", fields: [toolId], references: [id])
-  startDate   DateTime
-  endDate     DateTime
-  pending     Boolean  @default(true)
-  accepted    Boolean  @default(false)
-  price       Int?
-  booking     Booking?
-  viewed      Boolean  @default(false)
+  id        Int      @id @default(autoincrement())
+  renterId  Int
+  toolId    Int
+  startDate DateTime
+  endDate   DateTime
+  pending   Boolean  @default(true)
+  accepted  Boolean  @default(false)
+  price     Int?
+  viewed    Boolean  @default(false)
+  booking   Booking?
+  renter    User     @relation("UserAsRenter", fields: [renterId], references: [id])
+  tool      Tool     @relation("ToolToRequest", fields: [toolId], references: [id])
 }
 
 model Booking {
-  id          Int      @id @default(autoincrement())
-  requestId   Int      @unique
-  request     Request  @relation(fields: [requestId], references: [id])
-  renterId    Int
-  renter      User     @relation("UserAsBookingRenter", fields: [renterId], references: [id])
-  toolId      Int
-  tool        Tool     @relation("ToolAsBookingTool", fields: [toolId], references: [id])
-  startDate   DateTime
-  endDate     DateTime
-  price       Int
-  createdAt   DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  requestId Int      @unique
+  renterId  Int
+  toolId    Int
+  startDate DateTime
+  endDate   DateTime
+  price     Int
+  createdAt DateTime @default(now())
+  renter    User     @relation("UserAsBookingRenter", fields: [renterId], references: [id])
+  request   Request  @relation(fields: [requestId], references: [id])
+  tool      Tool     @relation("ToolAsBookingTool", fields: [toolId], references: [id])
 }
