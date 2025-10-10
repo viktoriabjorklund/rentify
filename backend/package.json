@@ -25,6 +25,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "pg": "^8.16.3",
     "prisma": "^6.16.1",
+    "streamifier": "^0.1.1",
     "ws": "^8.18.3"
   },
   "devDependencies": {
