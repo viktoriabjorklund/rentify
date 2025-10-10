@@ -1,14 +1,13 @@
 import express from 'express';
 import authMiddleware from '../middleware/authMiddleware.js';
 import * as toolController from '../controllers/toolController.js';
-import { upload } from '../middleware/uploadMiddleware.js'; // importera Multer
+import { upload } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
 
-router.get('/', authMiddleware, toolController.getTools);
+router.get('/', toolController.getTools);
 
-// för att hantera filuppladningar:
 router.post(
   '/',
   authMiddleware,

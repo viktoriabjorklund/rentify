@@ -46,7 +46,6 @@ export async function updateTool(id, arg) {
 
   const patch = (typeof arg === "string") ? { description: arg } : (arg || {});
 
-  // Build Prisma data from allowed keys only (avoid mass-assignment)
   const data = {};
   if (patch.name !== undefined) data.name = patch.name;
   if (patch.description !== undefined) data.description = patch.description;
@@ -54,7 +53,6 @@ export async function updateTool(id, arg) {
   if (patch.photoURL !== undefined) data.photoURL = patch.photoURL;
   if (patch.price !== undefined) data.price = toNumberOrNull(patch.price);
 
-  // Optional: early no-op guard
   if (Object.keys(data).length === 0) {
     return prisma.tool.findUnique({ where: { id: toolId }});
   }

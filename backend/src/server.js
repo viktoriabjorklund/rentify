@@ -21,7 +21,6 @@ app.use((req, _res, next) => {
 app.use(cors());
 app.use(express.json());
 
-// För att kunna access filer från uploads-mappen
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
 app.use('/api/users', userRoutes);
