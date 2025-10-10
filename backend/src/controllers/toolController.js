@@ -1,4 +1,6 @@
 import * as toolModel from '../models/toolModel.js';
+import { uploadToCloudinary } from "../middleware/uploadMiddleware.js";
+
 
 function toNumberOrNull(v) {
   if (v === '' || v === undefined || v === null) return null;
@@ -17,39 +19,18 @@ export async function getTools(req, res) {
 
 export async function createTool(req, res) {
   try {
-    console.log("🧰 createTool body:", req.body);
-    console.log("🖼️ req.file:", req.file ? req.file.path || req.file.filename : "no file");
-    console.log("👤 req.userId:", req.userId);
-
     const { name, description, price, location } = req.body;
-    const photoURL = req.file ? req.file.path : '';;
 
-    if (!req.file) {
-      return res.status(400).json({ error: "Photo is required" });
-    }
+    if (!req.file) return res.status(400).json({ error: "Photo is required" });
 
-    if (price === null || price === undefined || isNaN(price) || price <= 0) {
-      return res.status(400).json({ error: "Invalid price" });
-    }
-    if (!location || location.trim() === "") {
-      return res.status(400).json({ error: "Location is required" });
-    }
-    if (!name) return res.status(400).json({ error: 'name is required' });
-
-    console.log("📦 Creating tool with:", {
-      name,
-      description,
-      price,
-      location,
-      photoURL,
-      userId: req.userId,
-    });
-    
+    // 🔼 Ny kod: ladda upp direkt från minnet
+    const result = await uploadToCloudinary(req.file.buffer);
+    const photoURL = result.secure_url;
 
     const tool = await toolModel.createTool({
       name,
       description,
-      price: toNumberOrNull(price),
+      price: Number(price),
       location,
       photoURL,
       userId: req.userId,
@@ -57,10 +38,11 @@ export async function createTool(req, res) {
 
     res.status(201).json(tool);
   } catch (err) {
-    console.error('Error creating tool:', err);
-    res.status(500).json({ error: err.message, stack: err.stack });
+    console.error("Error creating tool:", err);
+    res.status(500).json({ error: err.message });
   }
 }
+
 
 
 export async function updateTool(req, res) {
