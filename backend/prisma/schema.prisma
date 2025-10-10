@@ -30,7 +30,8 @@ model Tool {
   name        String
   description String
   price       Int?       
-  location    String?    
+  location    String? 
+  photoURL    String?
   userId      Int        
   user        User       @relation(fields: [userId], references: [id])
   requests    Request[]  @relation("ToolToRequest")
