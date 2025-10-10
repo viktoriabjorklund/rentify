@@ -17,6 +17,10 @@ export async function getTools(req, res) {
 
 export async function createTool(req, res) {
   try {
+    console.log("🧰 createTool body:", req.body);
+    console.log("🖼️ req.file:", req.file ? req.file.path || req.file.filename : "no file");
+    console.log("👤 req.userId:", req.userId);
+
     const { name, description, price, location } = req.body;
     const photoURL = req.file ? req.file.path : '';;
 
@@ -31,6 +35,16 @@ export async function createTool(req, res) {
       return res.status(400).json({ error: "Location is required" });
     }
     if (!name) return res.status(400).json({ error: 'name is required' });
+
+    console.log("📦 Creating tool with:", {
+      name,
+      description,
+      price,
+      location,
+      photoURL,
+      userId: req.userId,
+    });
+    
 
     const tool = await toolModel.createTool({
       name,
