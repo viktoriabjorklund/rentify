@@ -7,14 +7,18 @@ export default function authMiddleware(req, res, next) {
   }
 
   const token = authHeader.startsWith('Bearer ')
-    ? authHeader.split(' ')[1]
-    : authHeader;
+  ? authHeader.split(' ')[1]
+  : authHeader;
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Invalid token format' });
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.id;          
+    req.userId = decoded.id;
     next();
-  } catch (err) {
+  } catch (err) { 
     console.error('JWT error:', err.message);
     return res.status(401).json({ error: 'Invalid token' });
   }
