@@ -23,12 +23,13 @@ model Tool {
   id          Int       @id @default(autoincrement())
   name        String
   description String
-  userId      Int
-  location    String?
-  price       Int?
-  bookings    Booking[] @relation("ToolAsBookingTool")
-  requests    Request[] @relation("ToolToRequest")
-  user        User      @relation(fields: [userId], references: [id])
+  price       Int?       
+  location    String? 
+  photoURL    String?
+  userId      Int        
+  user        User       @relation(fields: [userId], references: [id])
+  requests    Request[]  @relation("ToolToRequest")
+  bookings    Booking[]  @relation("ToolAsBookingTool")
 }
 
 model Request {
