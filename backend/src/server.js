@@ -37,6 +37,12 @@ app.use('/api/tools', toolRoutes);
 app.use('/api/requests', requestRoutes)
 app.use('/api/bookings', bookingRoutes);
 
+app.get("/debug/db", async (req, res) => {
+  const db = await prisma.$queryRaw`select current_database(), current_user`;
+  const users = await prisma.user.findMany({ take: 15, select: { id: true, username: true } });
+  res.json({ db, users });
+});
+
 app.get('/', (req, res) => {
   res.send('🚀 Rentify backend is running!');
 });
