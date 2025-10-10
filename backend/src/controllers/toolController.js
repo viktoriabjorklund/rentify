@@ -44,7 +44,7 @@ export async function createTool(req, res) {
     res.status(201).json(tool);
   } catch (err) {
     console.error('Error creating tool:', err);
-    res.status(500).json({ error: 'Failed to create tool' });
+    res.status(500).json({ error: err.message, stack: err.stack });
   }
 }
 
