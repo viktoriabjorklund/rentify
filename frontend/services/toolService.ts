@@ -8,7 +8,7 @@ export type Tool = {
   description: string;
   price: number;
   location: string;
-  image?: string;
+  photoURL?: string;
   user: {
     id: number;
     username: string;
