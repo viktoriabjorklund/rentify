@@ -8,6 +8,10 @@ import requestRoutes from './routes/requestRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import dotenv from 'dotenv'
 
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
