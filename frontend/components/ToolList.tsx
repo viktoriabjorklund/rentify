@@ -17,9 +17,9 @@ function ToolCard({ tool, showUser = false, showDescription = false }: {
   return (
     <article className="transition hover:opacity-80">
       <div className="aspect-[16/10] w-full bg-gray-200 rounded-2xl overflow-hidden relative">
-        {tool.image ? (
+        {tool.photoURL ? (
           <Image
-            src={tool.image}
+            src={tool.photoURL}
             alt={tool.name}
             fill
             className="object-cover"

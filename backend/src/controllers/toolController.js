@@ -18,7 +18,7 @@ export async function getTools(req, res) {
 export async function createTool(req, res) {
   try {
     const { name, description, price, location } = req.body;
-    const photoURL = req.file ? `/uploads/${req.file.filename}` : '';
+    const photoURL = req.file ? req.file.path : '';;
 
     if (!req.file) {
       return res.status(400).json({ error: "Photo is required" });
@@ -60,8 +60,7 @@ export async function updateTool(req, res) {
     if (existing.userId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
 
     const { name, description, price, location } = req.body;
-    const photoURL = req.file ? `/uploads/${req.file.filename}` : undefined;
-
+    const photoURL = req.file ? req.file.path : undefined;
     // Build partial update object (only set provided fields)
     const data = {
       ...(name !== undefined ? { name } : {}),
