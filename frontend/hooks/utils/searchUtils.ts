@@ -1,4 +1,4 @@
-import { Tool } from '../../services/toolService';
+import { Tool } from "../../services/toolService";
 
 /**
  * Calculate relevance score for a tool based on search query
@@ -6,29 +6,29 @@ import { Tool } from '../../services/toolService';
  */
 export function getRelevanceScore(tool: Tool, query: string): number {
   if (!query) return 0;
-  
+
   const queryLower = query.trim().toLowerCase();
   let score = 0;
-  
+
   const nameMatch = tool.name.toLowerCase().includes(queryLower);
   const descMatch = tool.description.toLowerCase().includes(queryLower);
   const locationMatch = tool.location?.toLowerCase().includes(queryLower);
-  
+
   // Scoring weights
   if (tool.name.toLowerCase() === queryLower) {
     score += 100; // Exact name match
   } else if (nameMatch) {
     score += 50; // Name contains query
   }
-  
+
   if (descMatch) {
     score += 30; // Description contains query
   }
-  
+
   if (locationMatch) {
     score += 20; // Location contains query
   }
-  
+
   return score;
 }
 
@@ -37,10 +37,23 @@ export function getRelevanceScore(tool: Tool, query: string): number {
  */
 export function filterTools(tools: Tool[], query: string): Tool[] {
   const q = query.trim().toLowerCase();
-  
-  return tools.filter((tool) => 
-    tool.name.toLowerCase().includes(q) || 
-    tool.description.toLowerCase().includes(q) || 
-    tool.location?.toLowerCase().includes(q)
+
+  return tools.filter(
+    (tool) =>
+      tool.name.toLowerCase().includes(q) ||
+      tool.description.toLowerCase().includes(q) ||
+      tool.location?.toLowerCase().includes(q) ||
+      tool.category?.toLowerCase().includes(q)
   );
+}
+
+/**
+ * Filter tools by category
+ */
+export function filterToolsByCategory(tools: Tool[], category: string): Tool[] {
+  if (!category || category === "all") {
+    return tools;
+  }
+
+  return tools.filter((tool) => tool.category === category);
 }
