@@ -2,8 +2,17 @@ import Head from "next/head";
 import { useEffect, useMemo, useState } from "react";
 import PrimaryButton from "@/components/PrimaryButton";
 import RequestTabs from "@/components/RequestTabs";
+import SubCategoryTabs from "@/components/SubCategoryTabs";
+import { ContactDialog } from "@/components/dialogs/ContactDialog";
+import {
+  getReceivedRequests,
+  getSentRequests,
+  markRequestAsViewed,
+  updateRequestStatus,
+} from "../services/requestService";
 
 type RequestStatus = "new" | "accepted" | "rejected" | "pending";
+type SubCategory = "pending" | "accepted" | "rejected";
 
 type Person = {
   id: string;
@@ -13,14 +22,16 @@ type Person = {
 type RequestItem = {
   id: string;
   person: Person;
-  title: string; // e.g. wants to rent your hammer, accepted your request
-  timeAgo: string; // e.g. 23 m, 5 d
+  title: string;
+  timeAgo: string;
   status?: RequestStatus;
   imageUrl?: string;
   priceSek?: number;
   dateFrom?: string;
   dateTo?: string;
   side: "received" | "sent";
+  detailName?: string;
+  viewed?: boolean;
 };
 
 const InboxIcon = ({
@@ -89,22 +100,114 @@ const Avatar = () => (
 
 export default function RequestsPage() {
   const [tab, setTab] = useState<"received" | "sent">("received");
+  const [subCategory, setSubCategory] = useState<SubCategory>("pending");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [receivedData, setReceivedData] = useState<RequestItem[] | null>(null);
   const [sentData, setSentData] = useState<RequestItem[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [contactPerson, setContactPerson] = useState<{
+    name: string;
+    phone?: string;
+    email?: string;
+  } | null>(null);
 
-  // Map backend payloads to UI items
+  const handleRequestClick = async (item: RequestItem) => {
+    setSelectedId(item.id);
+    if (item.side === "received" && item.status === "new" && !item.viewed) {
+      try {
+        await markRequestAsViewed(Number(item.id));
+        setReceivedData(
+          (prev) =>
+            prev?.map((req) =>
+              req.id === item.id ? { ...req, viewed: true } : req
+            ) ?? []
+        );
+      } catch (err) {
+        console.error("Failed to mark request as viewed:", err);
+      }
+    }
+  };
+
+  const handleAccept = async (requestId: string) => {
+    try {
+      await updateRequestStatus(Number(requestId), {
+        accepted: true,
+        pending: false,
+      });
+
+      setReceivedData(
+        (prev) =>
+          prev?.map((req) =>
+            req.id === requestId
+              ? { ...req, status: "accepted" as RequestStatus }
+              : req
+          ) ?? []
+      );
+    } catch (err) {
+      console.error("Failed to accept request:", err);
+      setError("Failed to accept request. Please try again.");
+    }
+  };
+
+  const handleReject = async (requestId: string) => {
+    try {
+      await updateRequestStatus(Number(requestId), {
+        accepted: false,
+        pending: false,
+      });
+
+      setReceivedData(
+        (prev) =>
+          prev?.map((req) =>
+            req.id === requestId
+              ? { ...req, status: "rejected" as RequestStatus }
+              : req
+          ) ?? []
+      );
+    } catch (err) {
+      console.error("Failed to reject request:", err);
+      setError("Failed to reject request. Please try again.");
+    }
+  };
+
+  const handleContactOwner = (selected: RequestItem) => {
+    setContactPerson({
+      name: selected.detailName || selected.person.name,
+      phone: "test phone", // TODO: Get from backend //Corre
+      email: "test@test.com", // TODO: Get from backend // Corre
+    });
+    setContactDialogOpen(true);
+  };
+
+  const handleContactRenter = (selected: RequestItem) => {
+    // For received requests, contact the renter
+    setContactPerson({
+      name: selected.detailName || selected.person.name,
+      phone: "test phone", // TODO: Get from backend //Corre
+      email: "test@test.com", // TODO: Get from backend /Corre
+    });
+    setContactDialogOpen(true);
+  };
+
   function mapSent(payload: any[]): RequestItem[] {
+    const firstName = (u: any) => u?.name?.toString().trim() || "";
+    const fullName = (u: any) => {
+      const first = u?.name?.toString().trim();
+      const last = u?.surname?.toString().trim();
+      const username = u?.username?.toString().trim();
+      const full = [first, last].filter(Boolean).join(" ");
+      return full || first || username || "";
+    };
     return (payload || []).map((r: any) => ({
       id: String(r.id),
       person: {
         id: String(r.tool?.user?.id ?? ""),
-        name: r.tool?.user?.name ?? r.tool?.user?.username ?? "",
+        name: firstName(r.tool?.user) || r.tool?.user?.username || "",
       },
       title: `You sent request to ${
-        r.tool?.user?.name ?? r.tool?.user?.username ?? ""
+        firstName(r.tool?.user) || r.tool?.user?.username || ""
       }`,
       timeAgo: "",
       side: "sent",
@@ -121,18 +224,28 @@ export default function RequestsPage() {
             .toLocaleDateString("en-GB", { day: "numeric", month: "short" })
             .toLowerCase()
         : undefined,
+      detailName: fullName(r.tool?.user),
+      viewed: r.viewed ?? false,
     }));
   }
 
   function mapReceived(payload: any[]): RequestItem[] {
+    const firstName = (u: any) => u?.name?.toString().trim() || "";
+    const fullName = (u: any) => {
+      const first = u?.name?.toString().trim();
+      const last = u?.surname?.toString().trim();
+      const username = u?.username?.toString().trim();
+      const full = [first, last].filter(Boolean).join(" ");
+      return full || first || username || "";
+    };
     return (payload || []).map((r: any) => ({
       id: String(r.id),
       person: {
         id: String(r.renter?.id ?? ""),
-        name: r.renter?.name ?? r.renter?.username ?? "",
+        name: firstName(r.renter) || r.renter?.username || "",
       },
       title: `${
-        r.renter?.name ?? r.renter?.username ?? "Someone"
+        firstName(r.renter) || r.renter?.username || "Someone"
       } send a request`,
       timeAgo: "",
       side: "received",
@@ -149,49 +262,86 @@ export default function RequestsPage() {
             .toLocaleDateString("en-GB", { day: "numeric", month: "short" })
             .toLowerCase()
         : undefined,
+      detailName: fullName(r.renter),
+      viewed: r.viewed ?? false,
     }));
   }
 
   useEffect(() => {
-    async function fetchData(kind: "received" | "sent") {
+    async function load() {
       try {
         setLoading(true);
         setError(null);
-        const token =
-          typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        const endpoint = `/api/requests/${
-          kind === "received" ? "recieved" : "sent"
-        }`; // note: backend uses 'recieved'
-        const res = await fetch(endpoint, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        if (!res.ok) throw new Error(`Failed to load ${kind} requests`);
-        const json = await res.json();
-        if (kind === "received") setReceivedData(mapReceived(json));
-        else setSentData(mapSent(json));
+        const [rec, sent] = await Promise.all([
+          getReceivedRequests(),
+          getSentRequests(),
+        ]);
+        setReceivedData(mapReceived(rec as any[]));
+        setSentData(mapSent(sent as any[]));
       } catch (e: any) {
         setError(e.message ?? String(e));
       } finally {
         setLoading(false);
       }
     }
-
-    fetchData("received");
-    fetchData("sent");
+    load();
   }, []);
 
   const currentList: RequestItem[] = useMemo(() => {
     const backend = tab === "received" ? receivedData : sentData;
-    return backend ?? [];
-  }, [tab, receivedData, sentData]);
+    const allRequests = (backend ?? []).filter(
+      (req) => req.status !== "rejected"
+    );
+
+    // Filter based on subcategory
+    return allRequests.filter((req) => {
+      if (tab === "received") {
+        switch (subCategory) {
+          case "pending":
+            return req.status === "new"; // All new requests (both viewed and not viewed)
+          case "accepted":
+            return req.status === "accepted";
+          default:
+            return false;
+        }
+      } else {
+        // sent
+        switch (subCategory) {
+          case "pending":
+            return req.status === "pending";
+          case "accepted":
+            return req.status === "accepted";
+          case "rejected":
+            return req.status === "rejected";
+          default:
+            return false;
+        }
+      }
+    });
+  }, [tab, subCategory, receivedData, sentData]);
 
   const list = currentList;
   const selected = list.find((d) => d.id === selectedId) || null;
 
   const counts = useMemo(
     () => ({
-      received: (receivedData ?? []).length,
-      sent: (sentData ?? []).length,
+      received: {
+        pending: (receivedData ?? []).filter(
+          (req) => req.status === "new" && !req.viewed
+        ).length,
+        accepted: (receivedData ?? []).filter(
+          (req) => req.status === "accepted"
+        ).length,
+      },
+      sent: {
+        pending: (sentData ?? []).filter(
+          (req) => req.status === "pending" && !req.viewed
+        ).length,
+        accepted: (sentData ?? []).filter((req) => req.status === "accepted")
+          .length,
+        rejected: (sentData ?? []).filter((req) => req.status === "rejected")
+          .length,
+      },
     }),
     [receivedData, sentData]
   );
@@ -221,8 +371,19 @@ export default function RequestsPage() {
               counts={counts}
               onChange={(next) => {
                 setTab(next);
+                setSubCategory("pending");
                 setSelectedId(null);
               }}
+            />
+
+            <SubCategoryTabs
+              active={subCategory}
+              counts={tab === "received" ? counts.received : counts.sent}
+              onChange={(next) => {
+                setSubCategory(next);
+                setSelectedId(null);
+              }}
+              isReceived={tab === "received"}
             />
           </div>
         </div>
@@ -238,7 +399,7 @@ export default function RequestsPage() {
                     className={`flex w-full items-center gap-4 px-2 py-5 text-left transition hover:bg-emerald-50/60 ${
                       selectedId === item.id ? "bg-emerald-50" : ""
                     }`}
-                    onClick={() => setSelectedId(item.id)}
+                    onClick={() => handleRequestClick(item)}
                   >
                     <Avatar />
                     <div className="min-w-0 flex-1">
@@ -247,7 +408,7 @@ export default function RequestsPage() {
                       </p>
                       <div className="mt-1 flex items-center gap-3 text-emerald-900/70">
                         <span className="text-sm">{item.timeAgo}</span>
-                        {item.status === "new" && (
+                        {item.status === "new" && !item.viewed && (
                           <span className="inline-block h-2 w-2 rounded-full bg-[#318EFF]" />
                         )}
                         {item.status === "accepted" && (
@@ -289,8 +450,10 @@ export default function RequestsPage() {
               </div>
             ) : tab === "received" ? (
               <div className="w-full">
-                <h3 className="mb-8 text-3xl md:text-4xl text-emerald-900 text-center titillium-web-black">
-                  {selected.person.name} wants to rent your hammer
+                <h3 className="mb-8 text-3xl md:text-4xl text-emerald-900 text-center titillium-web-semibold">
+                  {selected.status === "accepted"
+                    ? `You have accepted ${selected.person.name}'s request`
+                    : `${selected.person.name} wants to rent your hammer`}
                 </h3>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_380px] items-center">
                   <div className="overflow-hidden rounded-2xl">
@@ -304,43 +467,67 @@ export default function RequestsPage() {
                       <PhotoPlaceholder />
                     )}
                   </div>
-                  <div className="rounded-2xl border border-emerald-900/30 p-6 text-left">
-                    <div className="flex items-center justify-start gap-3 text-emerald-900">
+                  <div className="rounded-2xl border border-emerald-900/30 p-6 text-center">
+                    <div className="flex items-center justify-center gap-3 text-emerald-900 mb-4">
                       <Avatar />
                       <p className="titillium-web-semibold">
-                        Josefine Dahlström
+                        {selected.detailName || selected.person.name}
                       </p>
                     </div>
-                    <div className="mt-4 flex items-center justify-start gap-3 text-emerald-900">
-                      <span>From</span>
-                      <span className="rounded-2xl bg-emerald-700 text-white px-4 py-2 titillium-web-semibold">
+                    <div className="mt-4 flex items-center justify-center gap-3 text-emerald-900">
+                      <span className="titillium-web-semibold text-lg">
+                        From
+                      </span>
+                      <span className="rounded-xl bg-emerald-700 text-white px-4 py-1.5 titillium-web-semibold">
                         {selected.dateFrom}
                       </span>
-                      <span>to</span>
-                      <span className="rounded-2xl bg-emerald-700 text-white px-4 py-2 titillium-web-semibold">
+                      <span className="titillium-web-semibold text-lg">to</span>
+                      <span className="rounded-xl bg-emerald-700 text-white px-4 py-1.5 titillium-web-semibold">
                         {selected.dateTo}
                       </span>
                     </div>
-                    <p className="mt-4 text-emerald-900">
-                      Price:{" "}
+                    <p className="mt-4 text-emerald-900 text-lg">
+                      <span className="titillium-web-semibold">Price:</span>{" "}
                       <span className="titillium-web-semibold">
                         {selected.priceSek} SEK
                       </span>
                     </p>
-                    <div className="mt-6 flex items-center justify-center gap-4">
-                      <PrimaryButton className="bg-red-500 hover:bg-red-600">
-                        Reject
-                      </PrimaryButton>
-                      <span className="text-emerald-900/70">or</span>
-                      <PrimaryButton>Accept</PrimaryButton>
+                    <div className="mt-4 flex items-center justify-center gap-4">
+                      {selected.status === "accepted" ? (
+                        <PrimaryButton
+                          className="bg-[#318EFF] hover:bg-[#1F73E6]"
+                          onClick={() => handleContactRenter(selected)}
+                        >
+                          Contact renter
+                        </PrimaryButton>
+                      ) : (
+                        <>
+                          <PrimaryButton
+                            className="bg-red-500 hover:bg-red-600"
+                            onClick={() => handleReject(selected.id)}
+                          >
+                            Reject
+                          </PrimaryButton>
+                          <span className="text-emerald-900/70">or</span>
+                          <PrimaryButton
+                            onClick={() => handleAccept(selected.id)}
+                          >
+                            Accept
+                          </PrimaryButton>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="w-full">
-                <h3 className="mb-6 text-3xl text-emerald-900 text-center titillium-web-black">
-                  {selected.person.name} accepted your request!
+                <h3 className="mb-6 text-3xl text-emerald-900 text-center titillium-web-semibold">
+                  {selected.status === "pending"
+                    ? `Waiting for ${selected.person.name} to respond to your request`
+                    : selected.status === "accepted"
+                    ? `${selected.person.name} accepted your request!`
+                    : `${selected.person.name} rejected your request`}
                 </h3>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_380px] items-center">
                   <div className="overflow-hidden rounded-2xl">
@@ -354,29 +541,36 @@ export default function RequestsPage() {
                       <PhotoPlaceholder />
                     )}
                   </div>
-                  <div className="rounded-2xl border border-emerald-900/30 p-6 text-left">
-                    <div className="flex items-center justify-start gap-3 text-emerald-900">
+                  <div className="rounded-2xl border border-emerald-900/30 p-6 text-center">
+                    <div className="flex items-center justify-center gap-3 text-emerald-900 mb-4">
                       <Avatar />
-                      <p className="titillium-web-semibold">Kamilla Dahlin</p>
+                      <p className="titillium-web-semibold">
+                        {selected.detailName || selected.person.name}
+                      </p>
                     </div>
-                    <div className="mt-4 flex items-center justify-start gap-3 text-emerald-900">
-                      <span>From</span>
-                      <span className="rounded-2xl bg-emerald-700 text-white px-4 py-2 titillium-web-semibold">
+                    <div className="mt-4 flex items-center justify-center gap-3 text-emerald-900">
+                      <span className="titillium-web-semibold text-lg">
+                        From
+                      </span>
+                      <span className="rounded-xl bg-emerald-700 text-white px-4 py-1.5 titillium-web-semibold">
                         {selected.dateFrom}
                       </span>
-                      <span>to</span>
-                      <span className="rounded-2xl bg-emerald-700 text-white px-4 py-2 titillium-web-semibold">
+                      <span className="titillium-web-semibold text-lg">to</span>
+                      <span className="rounded-xl bg-emerald-700 text-white px-4 py-1.5 titillium-web-semibold">
                         {selected.dateTo}
                       </span>
                     </div>
-                    <p className="mt-4 text-emerald-900">
-                      Price:{" "}
+                    <p className="mt-4 text-emerald-900 text-lg">
+                      <span className="titillium-web-semibold">Price:</span>{" "}
                       <span className="titillium-web-semibold">
                         {selected.priceSek} SEK
                       </span>
                     </p>
                     <div className="mt-6 flex justify-center">
-                      <PrimaryButton className="bg-[#318EFF] hover:bg-[#1F73E6]">
+                      <PrimaryButton
+                        className="bg-[#318EFF] hover:bg-[#1F73E6]"
+                        onClick={() => handleContactOwner(selected)}
+                      >
                         Contact Owner
                       </PrimaryButton>
                     </div>
@@ -387,6 +581,15 @@ export default function RequestsPage() {
           </div>
         </div>
       </section>
+
+      {/* Contact Dialog */}
+      <ContactDialog
+        isOpen={contactDialogOpen}
+        onClose={() => setContactDialogOpen(false)}
+        phoneNumber={contactPerson?.phone}
+        email={contactPerson?.email}
+        ownerName={contactPerson?.name}
+      />
     </main>
   );
 }
