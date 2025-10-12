@@ -1,10 +1,18 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Tool, createTool as apiCreateTool, getUserTools } from '../../services/toolService';
-import { useAuth } from '../auth/useAuth';
-import { filterTools, getRelevanceScore } from '../utils/searchUtils';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  Tool,
+  createTool as apiCreateTool,
+  getUserTools,
+} from "../../services/toolService";
+import { useAuth } from "../auth/useAuth";
+import {
+  filterTools,
+  filterToolsByCategory,
+  getRelevanceScore,
+} from "../utils/searchUtils";
 
 export function useYourTools() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,35 +28,35 @@ export function useYourTools() {
       const userTools = await getUserTools();
       setTools(userTools);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch tools');
+      setError(err instanceof Error ? err.message : "Failed to fetch tools");
     } finally {
       setLoading(false);
     }
   }, [isAuthenticated, authLoading]);
 
-    // Fetch tools on mount
+  // Fetch tools on mount
   useEffect(() => {
     fetchUserTools();
   }, [fetchUserTools]);
 
-    // Filter and sort tools
+  // Filter and sort tools
   const filteredTools = useMemo(() => {
     let filtered = filterTools(tools, query);
 
-        // Sort by relevance if there's a search query
-        if (query) {
-          filtered.sort((a, b) => {
-            const aScore = getRelevanceScore(a, query);
-            const bScore = getRelevanceScore(b, query);
-            return bScore - aScore;
-          });
-        }
+    // Sort by relevance if there's a search query
+    if (query) {
+      filtered.sort((a, b) => {
+        const aScore = getRelevanceScore(a, query);
+        const bScore = getRelevanceScore(b, query);
+        return bScore - aScore;
+      });
+    }
 
     return filtered;
   }, [tools, query]);
 
   const retry = () => {
-     fetchUserTools();
+    fetchUserTools();
   };
 
   // UPDATED createTool signature: accepts photo?: File
@@ -64,15 +72,14 @@ export function useYourTools() {
         setLoading(true);
         setError(null);
 
-        
         const newTool = await apiCreateTool(toolData);
 
         // append to local state
-        setTools(prev => [...prev, newTool]);
+        setTools((prev) => [...prev, newTool]);
 
         return newTool;
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to create tool');
+        setError(err instanceof Error ? err.message : "Failed to create tool");
         throw err;
       } finally {
         setLoading(false);
