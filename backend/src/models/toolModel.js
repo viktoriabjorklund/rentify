@@ -46,6 +46,9 @@ export async function displayTool(id) {
 export async function getToolsByUser(userId) {
   return prisma.tool.findMany({
     where: { userId: parseInt(userId) },
-    include: { user: true }, // la till för att frontend ska få användardata 
+    include: { select: user.name, 
+      select: user.username, 
+      select:user.id,
+      select: user.surname}, // la till för att frontend ska få användardata 
   });
 }

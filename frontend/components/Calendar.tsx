@@ -76,7 +76,7 @@ export default function Calendar({disabled, calendarSize}:ButtonProps){
                  {">"}
             </button>
         </div>
-        <div className="weekdays text-gray-400 grid grid-cols-1 md:grid-cols-7 gap-2" style={{width:calendarSize}}>
+        <div className="weekdays text-gray-400 grid grid-cols-1 md:grid-cols-7 gap-2">
             {daysOfWeek.map((day)=> <span key={day}>{day}</span>)}
         </div>
         <div className="grid grid-cols-5 md:grid-cols-7" style={{alignContent:'center'}}>
