@@ -1,9 +1,8 @@
 import * as toolModel from '../models/toolModel.js';
 import { uploadToCloudinary } from "../middleware/uploadMiddleware.js";
 
-
 function toNumberOrNull(v) {
-  if (v === '' || v === undefined || v === null) return null;
+  if (v === "" || v === undefined || v === null) return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
@@ -19,19 +18,27 @@ export async function getTools(req, res) {
 
 export async function createTool(req, res) {
   try {
-    const { name, description, price, location } = req.body;
+    const { name, description, price, location, category } = req.body;
 
     if (!req.file) return res.status(400).json({ error: "Photo is required" });
 
-    // 🔼 Ny kod: ladda upp direkt från minnet
     const result = await uploadToCloudinary(req.file.buffer);
     const photoURL = result.secure_url;
+    
+    if (price === null || price === undefined || isNaN(price) || price <= 0) {
+      return res.status(400).json({ error: "Invalid price" });
+    }
+    if (!location || location.trim() === "") {
+      return res.status(400).json({ error: "Location is required" });
+    }
+    if (!name) return res.status(400).json({ error: "name is required" });
 
     const tool = await toolModel.createTool({
       name,
       description,
       price: Number(price),
       location,
+      category,
       photoURL,
       userId: req.userId,
     });
@@ -39,7 +46,7 @@ export async function createTool(req, res) {
     res.status(201).json(tool);
   } catch (err) {
     console.error("Error creating tool:", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Failed to create tool" });
   }
 }
 
@@ -47,15 +54,15 @@ export async function createTool(req, res) {
 
 export async function updateTool(req, res) {
   try {
-
     const toolId = Number(req.params.id);
 
     const existing = await toolModel.findToolOwner(toolId);
 
-    if (!existing) return res.status(404).json({ error: 'Tool not found' });
-    if (existing.userId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
+    if (!existing) return res.status(404).json({ error: "Tool not found" });
+    if (existing.userId !== req.userId)
+      return res.status(403).json({ error: "Forbidden" });
 
-    const { name, description, price, location } = req.body;
+    const { name, description, price, location, category } = req.body;
     const photoURL = req.file ? req.file.path : undefined;
     // Build partial update object (only set provided fields)
     const data = {
@@ -63,6 +70,7 @@ export async function updateTool(req, res) {
       ...(description !== undefined ? { description } : {}),
       ...(price !== undefined ? { price: toNumberOrNull(price) } : {}),
       ...(location !== undefined ? { location } : {}),
+      ...(category !== undefined ? { category } : {}),
       ...(photoURL !== undefined ? { photoURL } : {}),
     };
 
@@ -78,17 +86,17 @@ export async function deleteTool(req, res) {
     const toolId = Number(req.params.id);
 
     const existing = await toolModel.findToolOwner(toolId);
-    
-    if (!existing) return res.status(404).json({ error: 'Tool not found' });
-    if (existing.userId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
+
+    if (!existing) return res.status(404).json({ error: "Tool not found" });
+    if (existing.userId !== req.userId)
+      return res.status(403).json({ error: "Forbidden" });
 
     await toolModel.deleteTool(toolId);
-    res.json({ message: 'Tool deleted' });
+    res.json({ message: "Tool deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 }
-
 
 export async function displayTool(req, res) {
   try {

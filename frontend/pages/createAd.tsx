@@ -29,49 +29,49 @@ export default function CreateAd() {
   };
 
   // Handle submit
-// Handle submit
-const handleAddItem = async () => {
-  if (!user) {
-    return alert("You must be logged in");
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("name", title);
-    formData.append("description", description);
-    formData.append("price", price);
-    formData.append("location", place);
-    if (selectedFile) formData.append("photo", selectedFile); // 👈 must match upload.single('photo')
-
-    const token = localStorage.getItem("token");
-
-    const res = await fetch("http://localhost:8080/api/tools", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || "Failed to create tool");
+  // Handle submit
+  const handleAddItem = async () => {
+    if (!user) {
+      return alert("You must be logged in");
     }
 
-    alert("Ad created!");
-    setTitle("");
-    setCategory("");
-    setPlace("");
-    setPrice("");
-    setDescription("");
-    setSelectedFile(null);
-    setPreview("");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to create ad");
-  }
-};
+    try {
+      const formData = new FormData();
+      formData.append("name", title);
+      formData.append("description", description);
+      formData.append("price", price);
+      formData.append("location", place);
+      formData.append("category", category);
+      if (selectedFile) formData.append("photo", selectedFile); // 👈 must match upload.single('photo')
 
+      const token = localStorage.getItem("token");
+
+      const res = await fetch("http://localhost:8080/api/tools", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to create tool");
+      }
+
+      alert("Ad created!");
+      setTitle("");
+      setCategory("");
+      setPlace("");
+      setPrice("");
+      setDescription("");
+      setSelectedFile(null);
+      setPreview("");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create ad");
+    }
+  };
 
   return (
     <div className="flex h-screen items-center justify-center text-black bg-gray-100">
@@ -79,7 +79,6 @@ const handleAddItem = async () => {
         <p className="text-4xl text-[#3A7858]">Create Ad</p>
 
         <div className="flex flex-col gap-12 bg-white p-8 rounded-lg">
-
           <div className="flex gap-8">
             {/* Image Upload */}
             <div className="basis-1/2 flex items-center justify-center">
@@ -182,9 +181,3 @@ const handleAddItem = async () => {
     </div>
   );
 }
-
-
-  
-
-
-
