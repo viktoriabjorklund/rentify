@@ -31,7 +31,6 @@ export const upload = multer({
   limits: { fileSize: 20 * 1024 * 1024 },
 });
 
-// En hjälpfunktion som laddar upp bufferten till Cloudinary
 export const uploadToCloudinary = (fileBuffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
