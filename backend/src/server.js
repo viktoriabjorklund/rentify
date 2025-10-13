@@ -31,7 +31,24 @@ app.use((req, _res, next) => {
   next();
 });
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://rentify-frontend-ge6g.onrender.com"
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed from this origin"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
