@@ -172,8 +172,8 @@ export async function displayTool(id: number): Promise<Tool> {
     const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -182,7 +182,7 @@ export async function displayTool(id: number): Promise<Tool> {
     }
 
     const userTool = await response.json();
-    return userTool
+    return userTool;
   } catch (error) {
     console.error('Error fetching tool:', error);
     throw error;
