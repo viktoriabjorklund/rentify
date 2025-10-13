@@ -80,10 +80,20 @@ export async function deleteTool(id) {
 
 export async function displayTool(id) {
   return prisma.tool.findUnique({
-    where: { id: Number(id)},
-    include: { select: { id: true, username: true, name: true, surname: true }  }, // la till för att frontend ska få användardata 
+    where: { id: Number(id) },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          surname: true,
+        },
+      },
+    },
   });
 }
+
 
 export async function getToolsByUser(userId) {
   return prisma.tool.findMany({
