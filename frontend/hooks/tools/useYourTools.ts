@@ -1,11 +1,18 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Tool } from '../../services/toolService';
-import { getUserTools } from '../../services/toolService';
-import { useAuth } from '../auth/useAuth';
-import { filterTools, getRelevanceScore } from '../utils/searchUtils';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  Tool,
+  createTool as apiCreateTool,
+  getUserTools,
+} from "../../services/toolService";
+import { useAuth } from "../auth/useAuth";
+import {
+  filterTools,
+  filterToolsByCategory,
+  getRelevanceScore,
+} from "../utils/searchUtils";
 
 export function useYourTools() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,14 +21,14 @@ export function useYourTools() {
   // Fetch user's tools
   const fetchUserTools = useCallback(async () => {
     if (!isAuthenticated || authLoading) return;
-    
+
     try {
       setLoading(true);
       setError(null);
       const userTools = await getUserTools();
       setTools(userTools);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch tools');
+      setError(err instanceof Error ? err.message : "Failed to fetch tools");
     } finally {
       setLoading(false);
     }
@@ -52,6 +59,35 @@ export function useYourTools() {
     fetchUserTools();
   };
 
+  // UPDATED createTool signature: accepts photo?: File
+  const createTool = useCallback(
+    async (toolData: {
+      name: string;
+      description?: string;
+      price: number;
+      location: string;
+      photo?: File;
+    }) => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const newTool = await apiCreateTool(toolData);
+
+        // append to local state
+        setTools((prev) => [...prev, newTool]);
+
+        return newTool;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to create tool");
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
   return {
     query,
     setQuery,
@@ -59,6 +95,7 @@ export function useYourTools() {
     loading,
     error,
     retry,
-    user
+    user,
+    createTool, // return the updated createTool
   };
 }

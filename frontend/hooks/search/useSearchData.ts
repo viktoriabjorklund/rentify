@@ -16,7 +16,7 @@ export function useSearchData() {
       // Add default image to tools that don't have one
       const toolsWithDefaultImages = fetchedTools.map(tool => ({
         ...tool,
-        image: tool.image || DEFAULT_TOOL_IMAGE
+        image: tool.photoURL || DEFAULT_TOOL_IMAGE
       }));
       
       setTools(toolsWithDefaultImages);

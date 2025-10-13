@@ -1,11 +1,16 @@
-import { useMemo } from 'react';
-import { Tool } from '../../services/toolService';
-import { filterTools } from '../utils/searchUtils';
+import { useMemo } from "react";
+import { Tool } from "../../services/toolService";
+import { filterTools, filterToolsByCategory } from "../utils/searchUtils";
 
-export function useSearchFilter(tools: Tool[], query: string) {
+export function useSearchFilter(
+  tools: Tool[],
+  query: string,
+  category: string
+) {
   const filteredTools = useMemo(() => {
-    return filterTools(tools, query);
-  }, [tools, query]);
+    const categoryFiltered = filterToolsByCategory(tools, category);
+    return filterTools(categoryFiltered, query);
+  }, [tools, query, category]);
 
   return filteredTools;
 }

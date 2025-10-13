@@ -1,4 +1,5 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+import { API_URL } from "../api.js"
 
 export type User = {
   id: number;
@@ -26,7 +27,7 @@ export type LoginData = {
 
 export async function registerUser(data: RegisterData): Promise<User> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/register`, {
+    const response = await fetch(`${API_URL}/api/users/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ export async function registerUser(data: RegisterData): Promise<User> {
 
 export async function loginUser(data: LoginData): Promise<AuthResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/login`, {
+    const response = await fetch(`${API_URL}/api/users/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

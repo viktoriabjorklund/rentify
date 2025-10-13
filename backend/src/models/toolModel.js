@@ -1,54 +1,123 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export async function getAllTools() {
   return prisma.tool.findMany({
-    include: { user: true },
+    orderBy: { id: "desc" },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          surname: true,
+        },
+      },
+    },
   });
 }
 
-export async function createTool({name, description, price, location, userId}) {
+function toNumberOrNull(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  if (s === "") return null;
+  const n = Number(s.replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+export async function createTool({
+  name,
+  description,
+  price,
+  location,
+  category,
+  photoURL,
+  userId,
+}) {
   return prisma.tool.create({
     data: {
       name,
-      description,
-      price,
-      location,
-      userId,
+      description: description ?? "",
+      price: toNumberOrNull(price),
+      location: location ?? "",
+      category: category ?? "",
+      photoURL: photoURL ?? "",
+      userId: Number(userId),
     },
-    include: { user: true },
   });
 }
 
-export async function updateTool(id, description) {
+export async function updateTool(id, arg) {
+  const toolId = Number(id);
+  if (!Number.isFinite(toolId)) throw new Error("Invalid id");
+
+  const patch = typeof arg === "string" ? { description: arg } : arg || {};
+
+  const data = {};
+  if (patch.name !== undefined) data.name = patch.name;
+  if (patch.description !== undefined) data.description = patch.description;
+  if (patch.location !== undefined) data.location = patch.location;
+  if (patch.category !== undefined) data.category = patch.category;
+  if (patch.photoURL !== undefined) data.photoURL = patch.photoURL;
+  if (patch.price !== undefined) data.price = toNumberOrNull(patch.price);
+
+  if (Object.keys(data).length === 0) {
+    return prisma.tool.findUnique({ where: { id: toolId } });
+  }
+
   return prisma.tool.update({
-    where: { id: parseInt(id) },
-    data: { description },
-    include: { user: true },
+    where: { id: toolId },
+    data,
   });
 }
 
 export async function deleteTool(id) {
   return prisma.tool.delete({
-    where: { id: parseInt(id) },
+    where: { id: Number(id) },
   });
 }
 
-
 export async function displayTool(id) {
   return prisma.tool.findUnique({
-    where: { id: parseInt(id)},
-    include: { user: true }, // la till för att frontend ska få användardata 
+    where: { id: Number(id)},
+    include: { select: { id: true, username: true, name: true, surname: true }  }, // la till för att frontend ska få användardata 
   });
 }
 
 export async function getToolsByUser(userId) {
   return prisma.tool.findMany({
-    where: { userId: parseInt(userId) },
-    include: { select: user.name, 
-      select: user.username, 
-      select:user.id,
-      select: user.surname}, // la till för att frontend ska få användardata 
+    where: { userId: Number(userId) },
+    orderBy: { id: "desc" },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          surname: true,
+        },
+      },
+    },
+  });
+}
+
+export async function findToolOwner(id) {
+  const toolId = Number(id);
+  if (!Number.isFinite(toolId)) throw new Error("Invalid id");
+  return prisma.tool.findUnique({
+    where: { id: toolId },
+    select: { id: true, userId: true },
+  });
+}
+
+export async function findToolPublic(id) {
+  const toolId = Number(id);
+  if (!Number.isFinite(toolId)) throw new Error("Invalid id");
+  return prisma.tool.findUnique({
+    where: { id: toolId },
+    include: {
+      user: { select: { id: true, username: true, name: true, surname: true } },
+    },
   });
 }

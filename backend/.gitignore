@@ -4,3 +4,14 @@ node_modules
 
 /src/generated/prisma
 **/test.rest
+
+
+
+
+
+
+
+
+backend/.env
+backend/.env.local
+backend/.env.*.local
