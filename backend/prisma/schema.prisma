@@ -24,7 +24,7 @@ model Tool {
   name        String
   description String
   price       Int?       
-  location    String? 
+  location    String?
   category    String?
   photoURL    String?
   userId      Int        

@@ -8,6 +8,10 @@ import requestRoutes from './routes/requestRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import dotenv from 'dotenv'
 
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,7 +25,24 @@ app.use((req, _res, next) => {
   next();
 });
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://rentify-frontend-ge6g.onrender.com"
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed from this origin"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
@@ -32,7 +53,7 @@ app.use('/api/requests', requestRoutes)
 app.use('/api/bookings', bookingRoutes);
 
 app.get('/', (req, res) => {
-  res.send('🚀 Rentify backend is running!');
+  res.send('Rentify backend is running!');
 });
 
 app.listen(PORT, () => {

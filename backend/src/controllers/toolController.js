@@ -1,4 +1,5 @@
-import * as toolModel from "../models/toolModel.js";
+import * as toolModel from '../models/toolModel.js';
+import { uploadToCloudinary } from "../middleware/uploadMiddleware.js";
 
 function toNumberOrNull(v) {
   if (v === "" || v === undefined || v === null) return null;
@@ -18,12 +19,12 @@ export async function getTools(req, res) {
 export async function createTool(req, res) {
   try {
     const { name, description, price, location, category } = req.body;
-    const photoURL = req.file ? req.file.path : "";
 
-    if (!req.file) {
-      return res.status(400).json({ error: "Photo is required" });
-    }
+    if (!req.file) return res.status(400).json({ error: "Photo is required" });
 
+    const result = await uploadToCloudinary(req.file.buffer);
+    const photoURL = result.secure_url;
+    
     if (price === null || price === undefined || isNaN(price) || price <= 0) {
       return res.status(400).json({ error: "Invalid price" });
     }
@@ -35,7 +36,7 @@ export async function createTool(req, res) {
     const tool = await toolModel.createTool({
       name,
       description,
-      price: toNumberOrNull(price),
+      price: Number(price),
       location,
       category,
       photoURL,
@@ -48,6 +49,8 @@ export async function createTool(req, res) {
     res.status(500).json({ error: "Failed to create tool" });
   }
 }
+
+
 
 export async function updateTool(req, res) {
   try {
