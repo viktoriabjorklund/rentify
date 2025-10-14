@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { useAuth } from "../hooks/auth";
 import Calendar from '@/components/Calendar';
 import {createRequest} from "@/services/requestService";
+import confetti from 'canvas-confetti';
 
 // function for gettiung dates from local storage
 export function getItem(key: string) {
@@ -26,6 +27,7 @@ export default function TooldetailsPage(){
 
     const [tool, setTool] = React.useState<Tool | null >(null);
     const [loading, setLoading] = React.useState(true);
+    const [submitting, setSubmitting] = React.useState(false);
     const [error, setError] = React.useState<string | null >(null);
     const [totalDays, setTotalDays] = React.useState(0)
 
@@ -51,36 +53,60 @@ export default function TooldetailsPage(){
     if (!tool) return <p>No tool found</p>
 
   async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
   
     // Show loading while checking authentication
     if (authLoading) {
-      return (
-        <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
-          <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-            <p className="text-gray-600 mt-2">Loading...</p>
-          </div>
-        </main>
-      );
+      return;
     }
   
-    // Don't render anything if not authenticated (redirect will happen)
+    // Don't submit if not authenticated
     if (!isAuthenticated) {
-      return (
-        <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
-          <div className="text-center py-8">
-            <p className="text-gray-600">Redirecting to login...</p>
-          </div>
-        </main>
-      );
+      router.push('/login');
+      return;
     }
-    if (tool){
-    const success = await createRequest({ startDate: getItem("startdate")||new Date(), endDate:getItem("enddate")||new Date(), toolId:tool.id, price:tool.price, pending:true, accepted:false });
     
-    if (success) {
-      router.push('/');
-    }}
-    if (!tool){console.info("No tool")}
+    if (!tool) {
+      console.info("No tool");
+      return;
+    }
+    
+    try {
+      setSubmitting(true);
+      
+      const success = await createRequest({ 
+        startDate: getItem("startdate") || new Date(), 
+        endDate: getItem("enddate") || new Date(), 
+        toolId: tool.id, 
+        price: tool.price, 
+        pending: true, 
+        accepted: false 
+      });
+      
+      if (success) {
+        // Stop loading first
+        setSubmitting(false);
+        
+        // Small delay to let user see the button return to normal
+        setTimeout(() => {
+          // Trigger confetti animation
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }, 100);
+        
+        // Wait a bit so user can see the confetti before redirect
+        setTimeout(() => {
+          router.push('/requests?tab=sent');
+        }, 1600);
+      }
+    } catch (err) {
+      console.error("Error creating request:", err);
+      setError(err instanceof Error ? err.message : "Failed to send request");
+      setSubmitting(false);
+    }
   }
 
 async function changeTotal(startdate:Date, enddate:Date){
@@ -139,8 +165,16 @@ async function changeTotal(startdate:Date, enddate:Date){
 
               {/* Submit */}
                 <div className="content-center p-3 ml-32">
-                  <PrimaryButton type="submit" disabled={loading} size="md" onClick={onSubmit}>
-                    {loading ? 'Sending Request...' : 'Send Request'}
+                  <PrimaryButton type="submit" disabled={submitting} size="md" onClick={onSubmit}>
+                    {submitting ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending Request...
+                      </span>
+                    ) : 'Send Request'}
                   </PrimaryButton>
                 </div>
             </section>
