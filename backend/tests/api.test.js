@@ -49,7 +49,7 @@ describe("User routes", () => {
   });
 });
 
-describe("Tool routes", () => {
+describe("A Logins ", () => {
   let token;
   beforeAll(async () => {
     const login = await request(app)
@@ -70,7 +70,7 @@ describe("Tool routes", () => {
     expect(res.body.name).toBe("tool 1");
   });
 
-  test("A creates a new tool", async () => {
+  test("B creates a new tool", async () => {
     const res = await request(app)
       .post("/api/tools")
       .set("Authorization", `Bearer ${token}`)
@@ -80,7 +80,20 @@ describe("Tool routes", () => {
       .attach("photo", "tests/assets/spike_test.jpg");
     expect(res.statusCode).toBe(201);
     expect(res.body.name).toBe("Hammer");
-  });  
+  });
+
+  test("fetch all A's tools", async () => {
+    const res = await request(app)
+      .get("/api/tools/mytools")
+      .set("Authorization", `Bearer ${token}`);
+  
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThanOrEqual(2);
+    expect(res.body[0]).toHaveProperty("userId");
+    expect(res.body[0]).toHaveProperty("user");
+    expect(res.body[0].user.username).toBe("testA@test.com");
+  });
 
   test("fetches all tools", async () => {
     const res = await request(app).get("/api/tools");
