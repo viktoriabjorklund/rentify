@@ -40,6 +40,30 @@ export async function getAllTools(): Promise<Tool[]> {
   }
 }
 
+export async function searchTools(query: string): Promise<Tool[]> {
+  try {
+    const response = await fetch(
+      `${API_URL}/api/tools/search?q=${encodeURIComponent(query)}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to search tools: ${response.statusText}`);
+    }
+
+    const tools = await response.json();
+    return tools;
+  } catch (error) {
+    console.error("Error searching tools:", error);
+    throw error;
+  }
+}
+
 export async function getUserTools(): Promise<Tool[]> {
   try {
     const token = localStorage.getItem("token");
@@ -164,13 +188,13 @@ export async function deleteTool(id: number): Promise<void> {
 
 export async function displayTool(id: number): Promise<Tool> {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
 
     const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -184,7 +208,7 @@ export async function displayTool(id: number): Promise<Tool> {
     const userTool = await response.json();
     return userTool;
   } catch (error) {
-    console.error('Error fetching tool:', error);
+    console.error("Error fetching tool:", error);
     throw error;
   }
 }
