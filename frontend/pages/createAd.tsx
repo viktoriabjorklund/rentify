@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useYourTools } from "../hooks/tools/useYourTools";
+import { useLocationSearch } from "../hooks/location";
 
 export default function CreateAd() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -12,6 +13,16 @@ export default function CreateAd() {
   const [place, setPlace] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+
+  // Location autocomplete using ViewModel hook
+  const {
+    suggestions: locationSuggestions,
+    showSuggestions,
+    loading: loadingLocations,
+    search: searchLocations,
+    selectLocation,
+    showExistingSuggestions,
+  } = useLocationSearch();
 
   // Handle file selection + preview
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,38 +39,42 @@ export default function CreateAd() {
     reader.readAsDataURL(file);
   };
 
-  // Handle submit
-  // Handle submit
+  // Handle place input change
+  const handlePlaceChange = (value: string) => {
+    setPlace(value);
+    searchLocations(value); // Debouncing handled by hook
+  };
+
+  // Handle location selection
+  const handleLocationSelect = (location: any) => {
+    const selectedName = selectLocation(location);
+    setPlace(selectedName);
+  };
+
+  // Handle submit - uses ViewModel hook
   const handleAddItem = async () => {
     if (!user) {
       return alert("You must be logged in");
     }
 
+    if (!title || !price || !place) {
+      return alert("Please fill in all required fields");
+    }
+
     try {
-      const formData = new FormData();
-      formData.append("name", title);
-      formData.append("description", description);
-      formData.append("price", price);
-      formData.append("location", place);
-      formData.append("category", category);
-      if (selectedFile) formData.append("photo", selectedFile); // 👈 must match upload.single('photo')
-
-      const token = localStorage.getItem("token");
-
-      const res = await fetch("http://localhost:8080/api/tools", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
+      // Use service layer to create tool
+      await createTool({
+        name: title,
+        description: description,
+        price: Number(price),
+        location: place,
+        category: category,
+        photo: selectedFile || undefined,
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to create tool");
-      }
-
       alert("Ad created!");
+      
+      // Reset form
       setTitle("");
       setCategory("");
       setPlace("");
@@ -69,7 +84,7 @@ export default function CreateAd() {
       setPreview("");
     } catch (err) {
       console.error(err);
-      alert("Failed to create ad");
+      alert(err instanceof Error ? err.message : "Failed to create ad");
     }
   };
 
@@ -130,17 +145,34 @@ export default function CreateAd() {
                 </select>
 
                 <p>Place:</p>
-                <select
-                  className="border border-black rounded-lg px-2 py-1 w-full"
-                  value={place}
-                  onChange={(e) => setPlace(e.target.value)}
-                >
-                  <option value=""></option>
-                  <option value="stockholm">Stockholm</option>
-                  <option value="gothenburg">Gothenburg</option>
-                  <option value="malmo">Malmö</option>
-                  <option value="other">Other</option>
-                </select>
+                <div className="relative w-full">
+                  <input
+                    type="text"
+                    className="border border-black rounded-lg px-2 py-1 w-full"
+                    value={place}
+                    onChange={(e) => handlePlaceChange(e.target.value)}
+                    placeholder="Search for a location..."
+                    onFocus={showExistingSuggestions}
+                  />
+                  {loadingLocations && (
+                    <div className="absolute right-2 top-2 text-gray-400">
+                      Searching...
+                    </div>
+                  )}
+                  {showSuggestions && locationSuggestions.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {locationSuggestions.map((location) => (
+                        <div
+                          key={location.place_id}
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                          onClick={() => handleLocationSelect(location)}
+                        >
+                          {location.display_name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-2">
