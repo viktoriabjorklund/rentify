@@ -15,6 +15,8 @@ export default function SubCategoryTabs({
   onChange,
   isReceived = false,
 }: Props) {
+  const ACTIVE = "#00B988";
+  const INACTIVE = "#174B33";
   const getBadgeColor = (category: SubCategory) => {
     switch (category) {
       case "pending":
@@ -39,11 +41,10 @@ export default function SubCategoryTabs({
   );
 
   return (
-    <div className="mb-4 flex items-center gap-4 text-emerald-900">
+    <div className="mb-4 flex items-center gap-8">
       <button
-        className={`text-sm font-sans font-semibold ${
-          active === "pending" ? "text-emerald-900" : "text-emerald-900/70"
-        }`}
+        className="text-sm font-sans font-semibold"
+        style={{ color: active === "pending" ? ACTIVE : INACTIVE }}
         onClick={() => onChange("pending")}
       >
         Pending
@@ -51,32 +52,39 @@ export default function SubCategoryTabs({
       </button>
 
       {isReceived ? (
-        // For received:
-        <button
-          className={`text-sm font-sans font-semibold ${
-            active === "accepted" ? "text-emerald-900" : "text-emerald-900/70"
-          }`}
-          onClick={() => onChange("accepted")}
-        >
-          Replied
-          {badge(counts.accepted || 0, "accepted")}
-        </button>
-      ) : (
-        // For sent:
+        // For received: show Accepted and Rejected
         <>
           <button
-            className={`text-sm font-sans font-semibold ${
-              active === "accepted" ? "text-emerald-900" : "text-emerald-900/70"
-            }`}
+            className="text-sm font-sans font-semibold"
+            style={{ color: active === "accepted" ? ACTIVE : INACTIVE }}
             onClick={() => onChange("accepted")}
           >
             Accepted
             {badge(counts.accepted || 0, "accepted")}
           </button>
           <button
-            className={`text-sm font-sans font-semibold ${
-              active === "rejected" ? "text-emerald-900" : "text-emerald-900/70"
-            }`}
+            className="text-sm font-sans font-semibold"
+            style={{ color: active === "rejected" ? ACTIVE : INACTIVE }}
+            onClick={() => onChange("rejected")}
+          >
+            Rejected
+            {badge(counts.rejected || 0, "rejected")}
+          </button>
+        </>
+      ) : (
+        // For sent:
+        <>
+          <button
+            className="text-sm font-sans font-semibold"
+            style={{ color: active === "accepted" ? ACTIVE : INACTIVE }}
+            onClick={() => onChange("accepted")}
+          >
+            Accepted
+            {badge(counts.accepted || 0, "accepted")}
+          </button>
+          <button
+            className="text-sm font-sans font-semibold"
+            style={{ color: active === "rejected" ? ACTIVE : INACTIVE }}
             onClick={() => onChange("rejected")}
           >
             Rejected
