@@ -29,13 +29,6 @@ export type BackendRequest = {
   viewed?: boolean;
 };
 
-export type Request = {
-  requestId: number;
-  startDate: Date;
-  endDate: Date;
-  toolId: number;
-};
-
 export type RequestData = {
   startDate: Date;
   endDate: Date;
@@ -45,7 +38,7 @@ export type RequestData = {
   accepted: Boolean;
 };
 
-export async function createRequest(data: RequestData): Promise<Request> {
+export async function createRequest(data: RequestData): Promise<BackendRequest> {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
