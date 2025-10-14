@@ -75,7 +75,7 @@ export default function TooldetailsPage(){
       );
     }
     if (tool){
-    const success = await createRequest({ startDate: getItem("startdate")||new Date(), endDate:getItem("enddate")||new Date(), toolId:tool.id, price:tool.price, pending:true, accepted:false });
+    const success = await createRequest({ startDate: getItem("startdate")||new Date(), endDate:getItem("enddate")||new Date(), toolId:tool.id, price:(tool.price*totalDays), pending:true, accepted:false });
     
     if (success) {
       router.push('/');

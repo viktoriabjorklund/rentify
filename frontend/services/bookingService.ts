@@ -46,7 +46,7 @@ export async function getBookings(): Promise<Booking[]> {
   });
   if (!res.ok) {
     throw new Error(
-      `Failed to fetch received requests: ${res.status} ${res.statusText}`
+      `Failed to fetch recieved requests: ${res.status} ${res.statusText}`
     );
   }
   return res.json();
