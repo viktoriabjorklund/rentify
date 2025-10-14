@@ -54,7 +54,7 @@ export function useLocationSearch(debounceMs: number = 300) {
   const selectLocation = useCallback((location: LocationResult) => {
     setShowSuggestions(false);
     setSuggestions([]);
-    return location.display_name;
+    return location;
   }, []);
 
   /**

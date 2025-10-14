@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import { useYourTools } from "../hooks/tools/useYourTools";
 import { useLocationSearch } from "../hooks/location";
+import confetti from 'canvas-confetti';
 
 export default function CreateAd() {
+  const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
   const { user, createTool } = useYourTools();
 
   // Form state
@@ -47,8 +51,12 @@ export default function CreateAd() {
 
   // Handle location selection
   const handleLocationSelect = (location: any) => {
-    const selectedName = selectLocation(location);
-    setPlace(selectedName);
+    selectLocation(location);
+    // Format as "City, Kommun" or just "City"
+    const locationString = location.kommun 
+      ? `${location.city}, ${location.kommun}` 
+      : location.city;
+    setPlace(locationString);
   };
 
   // Handle submit - uses ViewModel hook
@@ -62,6 +70,8 @@ export default function CreateAd() {
     }
 
     try {
+      setSubmitting(true);
+      
       // Use service layer to create tool
       await createTool({
         name: title,
@@ -72,19 +82,27 @@ export default function CreateAd() {
         photo: selectedFile || undefined,
       });
 
-      alert("Ad created!");
+      // Stop loading first
+      setSubmitting(false);
       
-      // Reset form
-      setTitle("");
-      setCategory("");
-      setPlace("");
-      setPrice("");
-      setDescription("");
-      setSelectedFile(null);
-      setPreview("");
+      // Small delay before confetti
+      setTimeout(() => {
+        // Trigger confetti animation
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }, 100);
+      
+      // Wait a bit so user can see the confetti before redirect
+      setTimeout(() => {
+        router.push('/yourtools');
+      }, 1600);
     } catch (err) {
       console.error(err);
       alert(err instanceof Error ? err.message : "Failed to create ad");
+      setSubmitting(false);
     }
   };
 
@@ -151,12 +169,14 @@ export default function CreateAd() {
                     className="border border-black rounded-lg px-2 py-1 w-full"
                     value={place}
                     onChange={(e) => handlePlaceChange(e.target.value)}
-                    placeholder="Search for a location..."
                     onFocus={showExistingSuggestions}
                   />
                   {loadingLocations && (
                     <div className="absolute right-2 top-2 text-gray-400">
-                      Searching...
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
                     </div>
                   )}
                   {showSuggestions && locationSuggestions.length > 0 && (
@@ -164,10 +184,13 @@ export default function CreateAd() {
                       {locationSuggestions.map((location) => (
                         <div
                           key={location.place_id}
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
                           onClick={() => handleLocationSelect(location)}
                         >
-                          {location.display_name}
+                          <div className="text-sm font-medium">{location.city}</div>
+                          {location.kommun && (
+                            <div className="text-xs text-gray-500">{location.kommun}</div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -202,10 +225,18 @@ export default function CreateAd() {
           <div className="flex gap-4 justify-end items-center">
             <p className="text-2xl">Add Item</p>
             <button
-              className="w-8 h-8 bg-[#3A7858] text-white rounded-lg flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 bg-[#3A7858] text-white rounded-lg flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleAddItem}
+              disabled={submitting}
             >
-              +
+              {submitting ? (
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                '+'
+              )}
             </button>
           </div>
         </div>

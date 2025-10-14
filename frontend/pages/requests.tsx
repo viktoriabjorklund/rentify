@@ -205,9 +205,8 @@ export default function RequestsPage() {
     try {
       await deleteRequest(Number(requestId));
       
-      // Remove from local state
+      // Remove from sent requests only
       setSentData((prev) => prev?.filter((req) => req.id !== requestId) ?? []);
-      setReceivedData((prev) => prev?.filter((req) => req.id !== requestId) ?? []);
       
       // Clear selection if deleted item was selected
       if (selectedId === requestId) {
@@ -614,14 +613,6 @@ export default function RequestsPage() {
                           </>
                         )}
                       </div>
-                      <div className="flex justify-center">
-                        <button
-                          className="text-sm text-red-600 hover:text-red-700 underline"
-                          onClick={() => handleDeleteRequest(selected.id)}
-                        >
-                          Delete this request
-                        </button>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -690,14 +681,16 @@ export default function RequestsPage() {
                           </PrimaryButton>
                         </div>
                       )}
-                      <div className="flex justify-center">
-                        <PrimaryButton
-                          className="bg-red-500 hover:bg-red-600"
-                          onClick={() => handleDeleteRequest(selected.id)}
-                        >
-                          Delete Request
-                        </PrimaryButton>
-                      </div>
+                      {selected.status !== "accepted" && (
+                        <div className="flex justify-center">
+                          <PrimaryButton
+                            className="bg-red-500 hover:bg-red-600"
+                            onClick={() => handleDeleteRequest(selected.id)}
+                          >
+                            Delete Request
+                          </PrimaryButton>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
