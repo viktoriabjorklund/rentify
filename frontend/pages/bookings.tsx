@@ -14,14 +14,12 @@ export default function BookingsPage(){
 
 
    const monthsOfYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
    const [loading, setLoading] = React.useState(true);
    const [error, setError] = React.useState<string | null >(null);
    const [bookings, setBookings] = React.useState<Booking[] | null>(null);
    const { isLoading: authLoading, isAuthenticated } = useAuth();
 
-    const [firstLoad, setFirstLoad] = React.useState(true);
 
     React.useEffect(() => {
           async function load(){
@@ -40,19 +38,14 @@ export default function BookingsPage(){
           )
 
     if (bookings && bookings.length > 0 ){
-      //if (firstLoad){
-        //setFirstLoad(false)
-        //setBookings(bookings.toSorted((a,b)=>(
-          //    new Date(a.startDate).getMonth()*new Date(a.startDate).getDate() - new Date(b.startDate).getMonth()*new Date(b.startDate).getDate())))
-     // }
   return(
      <section  style={{ alignContent:'center'}}>
        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 mr-15 ml-15 mb-10 mt-10">
          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-2">
           
            {/* Left side of page */}
-           <section className='pl-10' style={{alignItems:'last-baseline'}}>
-             <Calendar calendarSize={400} />
+           <section className='pl-[8rem]' style={{alignItems:'last-baseline'}}>
+             <Calendar calendarSize={400} bookings={bookings}/>
            </section>
 
            {/* Right side of page */}
@@ -98,7 +91,7 @@ export default function BookingsPage(){
           
            {/* Left side of page */}
            <section className='pl-10' style={{alignItems:'last-baseline'}}>
-             <Calendar calendarSize={400} />
+             <Calendar calendarSize={400} bookings={[]}/>
            </section>
 
            {/* Right side of page */}

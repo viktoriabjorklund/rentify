@@ -5,6 +5,7 @@ type ButtonProps = {
   disabled?: boolean;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   calendarSize: number;
+  bookings: any[];
 };
 
 export function setItem(key: string, value: unknown) {
@@ -19,7 +20,7 @@ export function setItem(key: string, value: unknown) {
 }
 
 
-export default function Calendar({disabled, calendarSize}:ButtonProps){
+export default function Calendar({disabled, calendarSize, bookings}:ButtonProps){
   const monthsOfYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const currentDate = new Date() 
@@ -61,6 +62,35 @@ export default function Calendar({disabled, calendarSize}:ButtonProps){
         return(classes.filter(Boolean).join(' '))
     }
 
+    function showBookings(day:number, version:number){
+      if (bookings){
+      return (
+        //version==1?
+        <div className="text-black text-[0.5rem] overflow-hidden"> 
+       {bookings.map((booking)=>(
+        new Date(booking.startDate).getMonth() == currentMonth && 
+              new Date(booking.startDate).getDate()<= day && day <= new Date(booking.endDate).getDate())
+        ?  booking.tool.name
+        : ''
+        ) }
+        </div>)
+      /*:   (bookings.map((booking)=>(
+        new Date(booking.startDate).getMonth() == currentMonth 
+        ? new Date(booking.startDate).getDate()== day && day != new Date(booking.endDate).getDate()
+            ? 'bg-emerald-200 rounded-s-xl' 
+          : day == new Date(booking.endDate).getDate() && day != new Date(booking.startDate).getDate()
+            ? 'bg-emerald-200  rounded-se-xl rounded-ee-xl'
+          : new Date(booking.startDate).getDate()< day && day < new Date(booking.endDate).getDate()
+            ? 'bg-emerald-200 '
+          : new Date(booking.startDate).getDate()== day && day == new Date(booking.endDate).getDate()
+          ? 'bg-emerald-200 rounded-xl'
+          : ' '
+        :' '))))}*/
+      }}
+        
+      
+    
+
     return(
     
     <div className="calendar grid grid-cols-1 content-center" style={{maxWidth:calendarSize}}>
@@ -81,14 +111,14 @@ export default function Calendar({disabled, calendarSize}:ButtonProps){
         </div>
         <div className="grid grid-cols-5 md:grid-cols-7" style={{alignContent:'center'}}>
             {[...Array(firstDayOfMonth).keys()].map((_, index)=> (
-                <span key={`empty-${index}`}/>
+                <span key={`empty-${index}`} />
             ))}
             {[...Array(daysInMonth).keys()].map((day) => (
-               <button key={day + 1} className={classNames(
-                    'pt-1 pb-1 text-center h-9 mt-1 mb-1',
+              <div key={day + 1} className="grid grid-cols-2 md:grid-cols-1">
+               <button /*key={day + 1}*/className={classNames(
+                    'pt-1 pb-1 text-center mt-1 mb-1 h-[2rem] ',
                     day+1 ==currentDate.getDate() && currentMonth==currentDate.getMonth() 
-                    && currentYear==currentDate.getFullYear() && 'text-emerald-800 text-center rounded-xl bg-gray-200', 
-                    '',
+                    && currentYear==currentDate.getFullYear() && 'text-emerald-800 text-center rounded-xl bg-gray-200',
                     day+1 < currentDate.getDate() && currentMonth==currentDate.getMonth() 
                     && currentYear==currentDate.getFullYear() && 'text-gray-400',
                     currentMonth < currentDate.getMonth() 
@@ -103,12 +133,15 @@ export default function Calendar({disabled, calendarSize}:ButtonProps){
                     day+1 > startDate.getDate() && currentMonth ==startDate.getMonth() 
                     && currentYear==startDate.getFullYear() && day+1 < endDate.getDate() && currentMonth ==endDate.getMonth() 
                     && currentYear==endDate.getFullYear() && 'bg-emerald-500'
+                    //showBookings(day+1, 0)
                   )} onClick={() => (handleDayClick(day+1))}
-                >{day + 1}</button>
+                >{day + 1 }</button> 
+                  {showBookings(day+1,1)}
+                </div>
             ))}
         </div>
         <div className="events">
-           <div className='p-2 mb-2 mt-2 ml-15 text-center table table-full rounded-full bg-gray-200 w-7/10'>
+           <div className='p-2 mb-2 mt-2 ml-[2rem] text-center table table-full rounded-full bg-gray-200 w-[20rem]'>
               <div className="table-row">
                 <div className="table-cell border-r border-gray-400">Start Date </div>
                 <div className="table-cell">End Date</div>

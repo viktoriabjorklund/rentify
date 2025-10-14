@@ -131,7 +131,7 @@ async function changeTotal(startdate:Date, enddate:Date){
 
             {/* Right side of page */}
             <section className='pl-10' style={{alignItems:'last-baseline'}}>
-              <Calendar calendarSize={innerWidth/2} />
+              <Calendar calendarSize={innerWidth/2} bookings={[]} />
           
               <div className='content-center ml-5 pl-25 table table-full'>
                   <p className='text-lg pb-2 pl-5 pr-5 table-cell border-b border-gray-400'>{"Total price: "+ (totalDays+1)*tool.price}</p>
