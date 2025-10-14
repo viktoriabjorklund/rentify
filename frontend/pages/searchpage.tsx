@@ -113,12 +113,7 @@ function SearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
-      <span
-        className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400 flex items-center justify-center"
-        aria-hidden
-      >
-        ☰
-      </span>
+      {/* removed hamburger icon */}
     </div>
   );
 }
@@ -140,10 +135,10 @@ export default function SearchPage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
       <h1
-        className="mb-6 text-center text-6xl font-extrabold tracking-tight text-emerald-900 md:text-7xl"
+        className="mb-6 text-center text-6xl font-bold tracking-tight text-emerald-900 md:text-7xl"
         style={{
           fontFamily:
-            "ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
+            "Righteous, ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
         }}
       >
         Rentify

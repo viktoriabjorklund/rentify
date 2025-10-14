@@ -1,24 +1,28 @@
-import express from 'express';
-import authMiddleware from '../middleware/authMiddleware.js';
-import * as toolController from '../controllers/toolController.js';
-import { upload } from '../middleware/uploadMiddleware.js';
+import express from "express";
+import authMiddleware from "../middleware/authMiddleware.js";
+import * as toolController from "../controllers/toolController.js";
+import { upload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
-
-router.get('/', toolController.getTools);
+router.get("/", toolController.getTools);
+router.get("/search", toolController.searchTools);
 
 router.post(
-  '/',
+  "/",
   authMiddleware,
-  upload.single('photo'),   
+  upload.single("photo"),
   toolController.createTool
 );
 
-router.get('/mytools', authMiddleware, toolController.getMyTools);
-router.put('/:id', authMiddleware, upload.single('photo'), toolController.updateTool);
-router.delete('/:id', authMiddleware, toolController.deleteTool);
-router.get('/:id', authMiddleware, toolController.displayTool);
-
+router.get("/mytools", authMiddleware, toolController.getMyTools);
+router.put(
+  "/:id",
+  authMiddleware,
+  upload.single("photo"),
+  toolController.updateTool
+);
+router.delete("/:id", authMiddleware, toolController.deleteTool);
+router.get("/:id", authMiddleware, toolController.displayTool);
 
 export default router;
