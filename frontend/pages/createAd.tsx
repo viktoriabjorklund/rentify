@@ -1,9 +1,14 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import { useYourTools } from "../hooks/tools/useYourTools";
+import { useLocationSearch } from "../hooks/location";
+import confetti from 'canvas-confetti';
 
 export default function CreateAd() {
+  const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
   const { user, createTool } = useYourTools();
 
   // Form state
@@ -12,6 +17,16 @@ export default function CreateAd() {
   const [place, setPlace] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+
+  // Location autocomplete using ViewModel hook
+  const {
+    suggestions: locationSuggestions,
+    showSuggestions,
+    loading: loadingLocations,
+    search: searchLocations,
+    selectLocation,
+    showExistingSuggestions,
+  } = useLocationSearch();
 
   // Handle file selection + preview
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,48 +43,66 @@ export default function CreateAd() {
     reader.readAsDataURL(file);
   };
 
-  // Handle submit
-  // Handle submit
+  // Handle place input change
+  const handlePlaceChange = (value: string) => {
+    setPlace(value);
+    searchLocations(value); // Debouncing handled by hook
+  };
+
+  // Handle location selection
+  const handleLocationSelect = (location: any) => {
+    selectLocation(location);
+    // Format as "City, Kommun" or just "City"
+    const locationString = location.kommun 
+      ? `${location.city}, ${location.kommun}` 
+      : location.city;
+    setPlace(locationString);
+  };
+
+  // Handle submit - uses ViewModel hook
   const handleAddItem = async () => {
     if (!user) {
       return alert("You must be logged in");
     }
 
+    if (!title || !price || !place) {
+      return alert("Please fill in all required fields");
+    }
+
     try {
-      const formData = new FormData();
-      formData.append("name", title);
-      formData.append("description", description);
-      formData.append("price", price);
-      formData.append("location", place);
-      formData.append("category", category);
-      if (selectedFile) formData.append("photo", selectedFile); // 👈 must match upload.single('photo')
-
-      const token = localStorage.getItem("token");
-
-      const res = await fetch("http://localhost:8080/api/tools", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
+      setSubmitting(true);
+      
+      // Use service layer to create tool
+      await createTool({
+        name: title,
+        description: description,
+        price: Number(price),
+        location: place,
+        category: category,
+        photo: selectedFile || undefined,
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to create tool");
-      }
-
-      alert("Ad created!");
-      setTitle("");
-      setCategory("");
-      setPlace("");
-      setPrice("");
-      setDescription("");
-      setSelectedFile(null);
-      setPreview("");
+      // Stop loading first
+      setSubmitting(false);
+      
+      // Small delay before confetti
+      setTimeout(() => {
+        // Trigger confetti animation
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }, 100);
+      
+      // Wait a bit so user can see the confetti before redirect
+      setTimeout(() => {
+        router.push('/yourtools');
+      }, 1600);
     } catch (err) {
       console.error(err);
-      alert("Failed to create ad");
+      alert(err instanceof Error ? err.message : "Failed to create ad");
+      setSubmitting(false);
     }
   };
 
@@ -130,17 +163,39 @@ export default function CreateAd() {
                 </select>
 
                 <p>Place:</p>
-                <select
-                  className="border border-black rounded-lg px-2 py-1 w-full"
-                  value={place}
-                  onChange={(e) => setPlace(e.target.value)}
-                >
-                  <option value=""></option>
-                  <option value="stockholm">Stockholm</option>
-                  <option value="gothenburg">Gothenburg</option>
-                  <option value="malmo">Malmö</option>
-                  <option value="other">Other</option>
-                </select>
+                <div className="relative w-full">
+                  <input
+                    type="text"
+                    className="border border-black rounded-lg px-2 py-1 w-full"
+                    value={place}
+                    onChange={(e) => handlePlaceChange(e.target.value)}
+                    onFocus={showExistingSuggestions}
+                  />
+                  {loadingLocations && (
+                    <div className="absolute right-2 top-2 text-gray-400">
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </div>
+                  )}
+                  {showSuggestions && locationSuggestions.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {locationSuggestions.map((location) => (
+                        <div
+                          key={location.place_id}
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleLocationSelect(location)}
+                        >
+                          <div className="text-sm font-medium">{location.city}</div>
+                          {location.kommun && (
+                            <div className="text-xs text-gray-500">{location.kommun}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-2">
@@ -170,10 +225,18 @@ export default function CreateAd() {
           <div className="flex gap-4 justify-end items-center">
             <p className="text-2xl">Add Item</p>
             <button
-              className="w-8 h-8 bg-[#3A7858] text-white rounded-lg flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 bg-[#3A7858] text-white rounded-lg flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleAddItem}
+              disabled={submitting}
             >
-              +
+              {submitting ? (
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                '+'
+              )}
             </button>
           </div>
         </div>

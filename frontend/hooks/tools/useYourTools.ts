@@ -59,13 +59,14 @@ export function useYourTools() {
     fetchUserTools();
   };
 
-  // UPDATED createTool signature: accepts photo?: File
+  // UPDATED createTool signature: accepts photo?: File and category?: string
   const createTool = useCallback(
     async (toolData: {
       name: string;
       description?: string;
       price: number;
       location: string;
+      category?: string;
       photo?: File;
     }) => {
       try {
