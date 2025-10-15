@@ -34,10 +34,12 @@ export async function login(req, res) {
 
         if (!user) { return res.status(404).send({ message: "User not found" }) }
 
+        
         const passwordIsValid = bcrypt.compareSync(password, user.password)
         if (!passwordIsValid) { return res.status(401).send({ message: "Invalid password" }) }
-    // jag la till användardata i login-responsen så att vi har det ifall vi vill visa användarnamn eller andra detaljer i framtiden, typ när de loggar in (välkommen tillbaka XX)
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' })
+        
+// jag la till användardata i login-responsen så att vi har det ifall vi vill visa användarnamn eller andra detaljer i framtiden, typ när de loggar in (välkommen tillbaka XX)
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '3d' });
         res.json({ 
             token,
             user: {

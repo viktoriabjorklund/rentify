@@ -2,7 +2,10 @@ import React from "react";
 
 type Props = {
   active: "received" | "sent";
-  counts: { received: number; sent: number };
+  counts: {
+    received: { unviewed: number };
+    sent: { unviewed: number };
+  };
   onChange: (tab: "received" | "sent") => void;
 };
 
@@ -25,7 +28,7 @@ export default function RequestTabs({ active, counts, onChange }: Props) {
         onClick={() => onChange("received")}
       >
         Received
-        {badge(counts.received)}
+        {badge(counts.received.unviewed)}
       </button>
       <span className="h-6 w-px bg-emerald-900/30" />
       <button
@@ -33,7 +36,7 @@ export default function RequestTabs({ active, counts, onChange }: Props) {
         onClick={() => onChange("sent")}
       >
         Sent
-        {badge(counts.sent)}
+        {badge(counts.sent.unviewed)}
       </button>
     </div>
   );

@@ -4,8 +4,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "node --watch --env-file=.env --experimental-strip-types --experimental-sqlite ./src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node --watch --env-file=.env ./src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "npx prisma generate && npx prisma db push"
   },
   "keywords": [],
   "author": "",
@@ -16,11 +17,16 @@
     "@prisma/adapter-neon": "^6.16.3",
     "@prisma/client": "^6.16.1",
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
     "pg": "^8.16.3",
     "prisma": "^6.16.1",
+    "streamifier": "^0.1.1",
     "ws": "^8.18.3"
   },
   "devDependencies": {
