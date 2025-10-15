@@ -25,6 +25,7 @@ export default function CreateAd() {
     loading: loadingLocations,
     search: searchLocations,
     selectLocation,
+    hideExistingSuggestions,
     showExistingSuggestions,
   } = useLocationSearch();
 
@@ -61,8 +62,13 @@ export default function CreateAd() {
 
   // Check existing location
    function existingLocation(maybeLocation: string){
-    if (maybeLocation == locationSuggestions[0].city){
-      return true
+    if (locationSuggestions.length == 1 && locationSuggestions[0].kommun != undefined && maybeLocation.split(", ").length==2){
+      if (maybeLocation.split(", ")[0] == locationSuggestions[0].city && locationSuggestions[0].kommun ==maybeLocation.split(", ")[1]) 
+        return true
+    }
+    if(locationSuggestions.length == 1 && locationSuggestions[0].kommun == undefined){
+      if (maybeLocation == locationSuggestions[0].city) 
+        return true
     }
     return false
   }
@@ -73,7 +79,7 @@ export default function CreateAd() {
       return alert("You must be logged in");
     }
 
-    if (!title || !price || !place ||  existingLocation(place)) {
+    if (!title || !price || !place ||  !existingLocation(place)) {
       return alert("Please fill in all required fields");
     }
 
@@ -153,6 +159,7 @@ export default function CreateAd() {
                   className="border border-black rounded-lg px-2 py-1"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  onFocus={hideExistingSuggestions}
                 />
               </div>
 
@@ -162,6 +169,7 @@ export default function CreateAd() {
                   className="border border-black rounded-lg px-2 py-1 w-full"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
+                  onFocus={hideExistingSuggestions}
                 >
                   <option value=""></option>
                   <option value="electronics">Electronics</option>
@@ -212,7 +220,8 @@ export default function CreateAd() {
                   type="text"
                   className="border border-black rounded-lg px-2 py-1"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e) => setPrice(e.target.value)
+                  }onFocus={hideExistingSuggestions}
                 />
                 <p>SEK per day</p>
               </div>
@@ -224,6 +233,7 @@ export default function CreateAd() {
                   className="border border-black rounded-lg px-2 py-1"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  onFocus={hideExistingSuggestions}
                 />
               </div>
             </div>
