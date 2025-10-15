@@ -53,7 +53,7 @@ export function useLocationSearch(debounceMs: number = 300) {
    */
   const selectLocation = useCallback((location: LocationResult) => {
     setShowSuggestions(false);
-    setSuggestions([]);
+    setSuggestions([location]);
     return location;
   }, []);
 
@@ -70,6 +70,7 @@ export function useLocationSearch(debounceMs: number = 300) {
    */
   const showExistingSuggestions = useCallback(() => {
     if (suggestions.length > 0) {
+      setSuggestions([]);
       setShowSuggestions(true);
     }
   }, [suggestions]);

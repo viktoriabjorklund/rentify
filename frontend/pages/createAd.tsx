@@ -59,13 +59,21 @@ export default function CreateAd() {
     setPlace(locationString);
   };
 
+  // Check existing location
+   function existingLocation(maybeLocation: string){
+    if (maybeLocation == locationSuggestions[0].city){
+      return true
+    }
+    return false
+  }
+
   // Handle submit - uses ViewModel hook
   const handleAddItem = async () => {
     if (!user) {
       return alert("You must be logged in");
     }
 
-    if (!title || !price || !place) {
+    if (!title || !price || !place ||  existingLocation(place)) {
       return alert("Please fill in all required fields");
     }
 
