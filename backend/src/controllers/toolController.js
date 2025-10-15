@@ -64,7 +64,22 @@ export async function updateTool(req, res) {
 
     const { name, description, price, location, category } = req.body;
     const photoURL = req.file ? req.file.path : undefined;
-    // Build partial update object (only set provided fields)
+
+    if (name !== undefined && name.trim() === "") {
+      return res.status(400).json({ error: "Name cannot be empty" });
+    }
+
+    if (location !== undefined && location.trim() === "") {
+      return res.status(400).json({ error: "Location cannot be empty" });
+    }
+
+    if (price !== undefined) {
+      const numericPrice = Number(price);
+      if (isNaN(numericPrice) || numericPrice <= 0) {
+        return res.status(400).json({ error: "Invalid price" });
+      }
+    }
+    
     const data = {
       ...(name !== undefined ? { name } : {}),
       ...(description !== undefined ? { description } : {}),
