@@ -29,13 +29,6 @@ export type BackendRequest = {
   viewed?: boolean;
 };
 
-export type Request = {
-  requestId: number;
-  startDate: Date;
-  endDate: Date;
-  toolId: number;
-};
-
 export type RequestData = {
   startDate: Date;
   endDate: Date;
@@ -45,7 +38,7 @@ export type RequestData = {
   accepted: Boolean;
 };
 
-export async function createRequest(data: RequestData): Promise<Request> {
+export async function createRequest(data: RequestData): Promise<BackendRequest> {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -107,7 +100,7 @@ export async function getReceivedRequests(): Promise<BackendRequest[]> {
   });
   if (!res.ok) {
     throw new Error(
-      `Failed to fetch received requests: ${res.status} ${res.statusText}`
+      `Failed to fetch recieved requests: ${res.status} ${res.statusText}`
     );
   }
   return res.json();
