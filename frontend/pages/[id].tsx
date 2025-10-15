@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { useAuth } from "../hooks/auth";
 import Calendar from '@/components/Calendar';
 import { useRequestSubmit } from "../hooks/requests";
+import {createRequest} from "../services/requestService";
 
 // function for gettiung dates from local storage
 export function getItem(key: string) {
@@ -56,9 +57,31 @@ export default function TooldetailsPage(){
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
   
-    // Check authentication
-    if (authLoading) return;
-    
+    // Show loading while checking authentication
+    if (authLoading) {
+      return (
+        <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            <p className="text-gray-600 mt-2">Loading...</p>
+          </div>
+        </main>
+      );
+    }
+  
+    // Don't render anything if not authenticated (redirect will happen)
+    if (!isAuthenticated) {
+      return (
+        <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
+          <div className="text-center py-8">
+            <p className="text-gray-600">Redirecting to login...</p>
+          </div>
+        </main>
+      );
+    }
+    if (tool){
+    const success = await createRequest({ startDate: getItem("startdate")||new Date(), endDate:getItem("enddate")||new Date(), toolId:tool.id, price:(tool.price*(totalDays+1)), pending:true, accepted:false });
+    }
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -128,14 +151,14 @@ async function changeTotal(startdate:Date, enddate:Date){
 
             {/* Right side of page */}
             <section className='pl-10' style={{alignItems:'last-baseline'}}>
-              <Calendar calendarSize={innerWidth/2} />
+              <Calendar calendarSize={400} bookings={[]} />
           
               <div className='content-center ml-5 pl-25 table table-full'>
-                  <p className='text-lg pb-2 pl-5 pr-5 table-cell border-b border-gray-400'>{"Total price: "+ (totalDays+1)*tool.price}</p>
+                  <p className='text-lg pb-2 pl-5 pr-5 table-cell border-b border-gray-400'>{"Total price: "+ ((totalDays+1)*tool.price)}</p>
               </div>
 
               {/* Submit */}
-                <div className="content-center p-3 ml-32">
+                <div className="content-center p-3 ml-[7.3rem]">
                   <PrimaryButton type="submit" disabled={submitting} size="md" onClick={onSubmit}>
                     {submitting ? (
                       <span className="flex items-center gap-2">
