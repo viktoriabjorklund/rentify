@@ -64,3 +64,39 @@ export async function login(req, res) {
     }
 }
 
+export async function updateUser(req, res) {
+  try {
+    const { name, surname, password } = req.body;
+    const { id } = req.params;
+    const updated = await userModel.updateUser(id, name, surname, password);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export async function deleteUser(req, res) {
+  try {
+    const { id } = req.params;
+    await userModel.deleteUser(id);
+    res.json({ message: "User deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+
+export async function displayUser(req, res) {
+  try {
+    const { id } = req.params;
+    const user = await userModel.displayUser(id);
+
+    if (!user) {
+      return res.status(404).json({ error: "Tool not found" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
