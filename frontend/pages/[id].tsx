@@ -50,7 +50,14 @@ export default function TooldetailsPage(){
     React.useEffect(()=>{window.addEventListener('storage', () => {
     changeTotal(getItem('startdate')||new Date(), getItem('enddate')||new Date())})})
 
-    if (loading) return <p>Loading tool...</p>
+    if (loading) {
+      return (
+        <main className="flex flex-col items-center justify-center py-16">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+          <p className="text-gray-600 mt-2">Loading tool...</p>
+        </main>
+      );
+    }
     if (error || submitError) return <p className='text-red-600'>Error: {error || submitError}</p>
     if (!tool) return <p>No tool found</p>
 
@@ -63,7 +70,6 @@ export default function TooldetailsPage(){
         <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-            <p className="text-gray-600 mt-2">Loading...</p>
           </div>
         </main>
       );
@@ -79,9 +85,7 @@ export default function TooldetailsPage(){
         </main>
       );
     }
-    if (tool){
-    const success = await createRequest({ startDate: getItem("startdate")||new Date(), endDate:getItem("enddate")||new Date(), toolId:tool.id, price:(tool.price*(totalDays+1)), pending:true, accepted:false });
-    }
+
     if (!isAuthenticated) {
       router.push('/login');
       return;
