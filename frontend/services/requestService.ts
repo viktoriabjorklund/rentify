@@ -90,12 +90,11 @@ export async function getSentRequests(): Promise<BackendRequest[]> {
 }
 
 export async function getReceivedRequests(): Promise<BackendRequest[]> {
-  // Backend stavar "recieved"
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...authHeaders(),
   };
-  const res = await fetch(`${API_BASE_URL}/api/requests/recieved`, {
+  const res = await fetch(`${API_BASE_URL}/api/requests/received`, {
     method: "GET",
     headers,
   });
@@ -144,4 +143,22 @@ export async function updateRequestStatus(
     );
   }
   return res.json();
+}
+
+export async function deleteRequest(requestId: number): Promise<void> {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...authHeaders(),
+  };
+  const res = await fetch(`${API_BASE_URL}/api/requests/${requestId}`, {
+    method: "DELETE",
+    headers,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(
+      err.error ||
+        `Failed to delete request ${requestId}: ${res.status} ${res.statusText}`
+    );
+  }
 }

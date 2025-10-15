@@ -5,7 +5,8 @@ import { Tool } from "@/services/toolService";
 import { useRouter } from "next/router";
 import { useAuth } from "../hooks/auth";
 import Calendar from '@/components/Calendar';
-import {createRequest} from "@/services/requestService";
+import { useRequestSubmit } from "../hooks/requests";
+import {createRequest} from "../services/requestService";
 
 // function for gettiung dates from local storage
 export function getItem(key: string) {
@@ -28,6 +29,9 @@ export default function TooldetailsPage(){
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null >(null);
     const [totalDays, setTotalDays] = React.useState(0)
+    
+    // Use ViewModel hook for request submission
+    const { submitRequest, submitting, error: submitError } = useRequestSubmit();
 
     React.useEffect(() => {
       if(firstLoad){
@@ -47,10 +51,11 @@ export default function TooldetailsPage(){
     changeTotal(getItem('startdate')||new Date(), getItem('enddate')||new Date())})})
 
     if (loading) return <p>Loading tool...</p>
-    if (error) return <p className='text-red-600'>Error: {error}</p>
+    if (error || submitError) return <p className='text-red-600'>Error: {error || submitError}</p>
     if (!tool) return <p>No tool found</p>
 
   async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
   
     // Show loading while checking authentication
     if (authLoading) {
@@ -76,11 +81,26 @@ export default function TooldetailsPage(){
     }
     if (tool){
     const success = await createRequest({ startDate: getItem("startdate")||new Date(), endDate:getItem("enddate")||new Date(), toolId:tool.id, price:(tool.price*(totalDays+1)), pending:true, accepted:false });
+    }
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
     
-    if (success) {
-      router.push('/');
-    }}
-    if (!tool){console.info("No tool")}
+    if (!tool) {
+      console.info("No tool");
+      return;
+    }
+    
+    // Use ViewModel hook - handles API call, confetti, and navigation
+    await submitRequest({ 
+      startDate: getItem("startdate") || new Date(), 
+      endDate: getItem("enddate") || new Date(), 
+      toolId: tool.id, 
+      price: tool.price, 
+      pending: true, 
+      accepted: false 
+    });
   }
 
 async function changeTotal(startdate:Date, enddate:Date){
@@ -139,8 +159,16 @@ async function changeTotal(startdate:Date, enddate:Date){
 
               {/* Submit */}
                 <div className="content-center p-3 ml-[7.3rem]">
-                  <PrimaryButton type="submit" disabled={loading} size="md" onClick={onSubmit}>
-                    {loading ? 'Sending Request...' : 'Send Request'}
+                  <PrimaryButton type="submit" disabled={submitting} size="md" onClick={onSubmit}>
+                    {submitting ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending Request...
+                      </span>
+                    ) : 'Send Request'}
                   </PrimaryButton>
                 </div>
             </section>

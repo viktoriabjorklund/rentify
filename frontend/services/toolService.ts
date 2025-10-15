@@ -40,6 +40,30 @@ export async function getAllTools(): Promise<Tool[]> {
   }
 }
 
+export async function searchTools(query: string): Promise<Tool[]> {
+  try {
+    const response = await fetch(
+      `${API_URL}/api/tools/search?q=${encodeURIComponent(query)}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to search tools: ${response.statusText}`);
+    }
+
+    const tools = await response.json();
+    return tools;
+  } catch (error) {
+    console.error("Error searching tools:", error);
+    throw error;
+  }
+}
+
 export async function getUserTools(): Promise<Tool[]> {
   try {
     const token = localStorage.getItem("token");
@@ -72,6 +96,7 @@ export async function createTool(data: {
   price: number;
   location: string;
   description?: string;
+  category?: string;
   photo?: File;
 }): Promise<Tool> {
   try {
@@ -85,6 +110,7 @@ export async function createTool(data: {
     formData.append("price", String(data.price));
     formData.append("location", data.location);
     if (data.description) formData.append("description", data.description);
+    if (data.category) formData.append("category", data.category);
     if (data.photo) formData.append("photo", data.photo);
 
     const response = await fetch(`${API_URL}/api/tools`, {
@@ -111,7 +137,14 @@ export async function createTool(data: {
 
 export async function updateTool(
   id: number,
-  description: string
+  data: { 
+    name?: string; 
+    description?: string; 
+    price?: number; 
+    location?: string;
+    category?: string;
+    photo?: File;
+  }
 ): Promise<Tool> {
   try {
     const token = localStorage.getItem("token");
@@ -119,17 +152,26 @@ export async function updateTool(
       throw new Error("No authentication token found");
     }
 
+    const formData = new FormData();
+    if (data.name !== undefined) formData.append('name', data.name);
+    if (data.description !== undefined) formData.append('description', data.description);
+    if (data.price !== undefined) formData.append('price', String(data.price));
+    if (data.location !== undefined) formData.append('location', data.location);
+    if (data.category !== undefined) formData.append('category', data.category);
+    if (data.photo) formData.append('photo', data.photo);
+
     const response = await fetch(`${API_URL}/api/tools/${id}`, {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
+        // Don't set Content-Type - browser will set it with boundary for multipart
       },
-      body: JSON.stringify({ description }),
+      body: formData,
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update tool: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `Failed to update tool: ${response.statusText}`);
     }
 
     return await response.json();
@@ -164,13 +206,13 @@ export async function deleteTool(id: number): Promise<void> {
 
 export async function displayTool(id: number): Promise<Tool> {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
 
     const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -184,7 +226,7 @@ export async function displayTool(id: number): Promise<Tool> {
     const userTool = await response.json();
     return userTool;
   } catch (error) {
-    console.error('Error fetching tool:', error);
+    console.error("Error fetching tool:", error);
     throw error;
   }
 }

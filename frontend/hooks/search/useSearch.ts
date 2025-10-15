@@ -13,7 +13,7 @@ export function useSearch() {
     useSearchState();
 
   // Get data from API
-  const { tools: allTools, loading, error, retry } = useSearchData();
+  const { tools: allTools, loading, error, retry } = useSearchData(query);
 
   // Filter tools based on query and category
   const filteredTools = useSearchFilter(allTools, query, category);

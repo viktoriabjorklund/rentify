@@ -1,16 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import MeatballsMenu from "../components/MeatballsMenu";
-
-type Tool = {
-  id: number;
-  name: string;
-  description: string;
-  price: number | null;
-  location: string | null;
-  photoURL?: string | null;
-  user?: { id: number; username: string; name?: string | null; surname?: string | null };
-};
+import { displayTool, Tool } from "../services/toolService";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -22,24 +13,14 @@ export default function DetailView() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Load tool using service layer
   useEffect(() => {
     if (!Number.isFinite(id)) return;
     (async () => {
       try {
         setLoading(true);
         setError(null);
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        const res = await fetch(`${API_BASE}/api/tools/${id}`, {
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || `Failed to fetch tool (status ${res.status})`);
-        }
-        const data: Tool = await res.json();
+        const data = await displayTool(id);
         setTool(data);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load tool");

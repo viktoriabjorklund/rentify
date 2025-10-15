@@ -1,14 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-
-type Tool = {
-  id: number;
-  name: string;
-  description: string;
-  price: number | null;
-  location: string | null;
-  photoURL?: string | null;
-};
+import { displayTool, updateTool, Tool } from "../services/toolService";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -39,28 +31,18 @@ export default function EditAd() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Load tool by id
+  // Load tool by id - uses service layer
   useEffect(() => {
     if (!Number.isFinite(id)) return;
     (async () => {
       try {
         setLoading(true);
         setError(null);
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        if (!token) {
-          throw new Error("You must be logged in to edit an ad.");
-        }
-        const res = await fetch(`${API_BASE}/api/tools/${id}`, {
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || `Failed to load tool (status ${res.status})`);
-        }
-        const t: Tool = await res.json();
+        
+        const t = await displayTool(id);
         setTool(t);
         setTitle(t.name || "");
-        setPlace(normalizePlace(t.location)); // <-- set from existing value
+        setPlace(normalizePlace(t.location));
         setPrice(t.price != null ? String(t.price) : "");
         setDescription(t.description || "");
         if (t.photoURL) {
@@ -84,37 +66,21 @@ export default function EditAd() {
     reader.readAsDataURL(file);
   };
 
-  // Save (PUT multipart)
+  // Save - uses service layer
   const onSave = async () => {
     if (!Number.isFinite(id)) return;
     try {
       setSaving(true);
       setError(null);
 
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("You must be logged in to edit an ad.");
-
-      const form = new FormData();
-      form.append("name", title);
-      form.append("description", description);
-      form.append("price", price);      // '' is fine
-      form.append("location", place);   // <-- send the select value
-      if (selectedFile) form.append("photo", selectedFile); // field must be "photo"
-
-      const url = `${API_BASE}/api/tools/${id}`;
-      console.log("Sending PUT to:", url);
-
-      const res = await fetch(url, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` }, // do NOT set Content-Type
-        body: form,
+      // Use service layer to update tool
+      await updateTool(id, {
+        name: title,
+        description: description,
+        price: price ? Number(price) : undefined,
+        location: place,
+        photo: selectedFile || undefined,
       });
-
-      const bodyText = await res.text();
-      console.log("PUT status:", res.status);
-      console.log("PUT response body:", bodyText);
-
-      if (!res.ok) throw new Error(bodyText || `Failed: ${res.status}`);
 
       router.push(`/detailview?id=${id}`);
     } catch (e: any) {
