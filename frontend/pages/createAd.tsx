@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SuccessCheck from "@/components/SuccessCheck";
 import { useYourTools } from "../hooks/tools/useYourTools";
 
 export default function CreateAd() {
@@ -12,6 +13,7 @@ export default function CreateAd() {
   const [place, setPlace] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Handle file selection + preview
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,7 +30,6 @@ export default function CreateAd() {
     reader.readAsDataURL(file);
   };
 
-  // Handle submit
   // Handle submit
   const handleAddItem = async () => {
     if (!user) {
@@ -59,7 +60,7 @@ export default function CreateAd() {
         throw new Error(err.error || "Failed to create tool");
       }
 
-      alert("Ad created!");
+      setShowSuccess(true);
       setTitle("");
       setCategory("");
       setPlace("");
@@ -178,6 +179,12 @@ export default function CreateAd() {
           </div>
         </div>
       </div>
+      {showSuccess && (
+        <SuccessCheck
+          message="Ad created!"
+          onClose={() => setShowSuccess(false)}
+        />
+      )}
     </div>
   );
 }
