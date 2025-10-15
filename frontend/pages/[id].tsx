@@ -75,7 +75,7 @@ export default function TooldetailsPage(){
       );
     }
     if (tool){
-    const success = await createRequest({ startDate: getItem("startdate")||new Date(), endDate:getItem("enddate")||new Date(), toolId:tool.id, price:(tool.price*totalDays), pending:true, accepted:false });
+    const success = await createRequest({ startDate: getItem("startdate")||new Date(), endDate:getItem("enddate")||new Date(), toolId:tool.id, price:(tool.price*(totalDays+1)), pending:true, accepted:false });
     
     if (success) {
       router.push('/');
@@ -131,14 +131,14 @@ async function changeTotal(startdate:Date, enddate:Date){
 
             {/* Right side of page */}
             <section className='pl-10' style={{alignItems:'last-baseline'}}>
-              <Calendar calendarSize={innerWidth/2} bookings={[]} />
+              <Calendar calendarSize={400} bookings={[]} />
           
               <div className='content-center ml-5 pl-25 table table-full'>
-                  <p className='text-lg pb-2 pl-5 pr-5 table-cell border-b border-gray-400'>{"Total price: "+ (totalDays+1)*tool.price}</p>
+                  <p className='text-lg pb-2 pl-5 pr-5 table-cell border-b border-gray-400'>{"Total price: "+ ((totalDays+1)*tool.price)}</p>
               </div>
 
               {/* Submit */}
-                <div className="content-center p-3 ml-32">
+                <div className="content-center p-3 ml-[7.3rem]">
                   <PrimaryButton type="submit" disabled={loading} size="md" onClick={onSubmit}>
                     {loading ? 'Sending Request...' : 'Send Request'}
                   </PrimaryButton>

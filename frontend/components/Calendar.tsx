@@ -1,5 +1,5 @@
 import React from "react";
-let oldkey = ""
+let oldkey = [new Date(), new Date()]
 
 type ButtonProps = {
   disabled?: boolean;
@@ -8,12 +8,18 @@ type ButtonProps = {
   bookings: any[];
 };
 
-export function setItem(key: string, value: unknown) {
+export function setItem(key: string, value: Date) {
   try {
-    if (oldkey != key){
+    if (oldkey[0] != value && key=="startdate"){
     localStorage.setItem(key, JSON.stringify(value));
-    oldkey = key
+    oldkey[0] = value
     window.dispatchEvent(new Event("storage"));}
+
+    if(oldkey[1]!=value && key=="enddate"){
+      localStorage.setItem(key, JSON.stringify(value));
+      oldkey[1] = value
+    window.dispatchEvent(new Event("storage"));
+    }
   } catch (error) {
     console.error('Error saving to localStorage', error);
   }
@@ -32,8 +38,8 @@ export default function Calendar({disabled, calendarSize, bookings}:ButtonProps)
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
   const firstDayOfMonth = new Date(currentYear, currentMonth, 0).getDay()
   
-  {React.useEffect(()=>{setItem('startdate',startDate)})}
-  {React.useEffect(()=>{setItem('enddate',endDate)})}
+  React.useEffect(()=>{setItem('startdate',startDate)})
+  React.useEffect(()=>{setItem('enddate',endDate)})
 
   async function prevMonth() {
     setCurrentMonth((prevMonth) => (prevMonth === 0 ? 11: prevMonth - 1))
@@ -50,7 +56,7 @@ export default function Calendar({disabled, calendarSize, bookings}:ButtonProps)
         const today = new Date()
 
         if (clickedDate >= today){
-            clickedDate < startDate || startDate.getDate()==currentDate.getDate() || startDate.getDate() < endDate.getDate() && startDate.getMonth() >= endDate.getMonth() 
+            clickedDate < startDate || startDate.getDate()==currentDate.getDate() || startDate.getDate() < endDate.getDate() && startDate.getMonth() >= endDate.getMonth() || bookings.length > 0
                 ? (setStartDate(clickedDate), setEndDate(clickedDate))
                 : (clickedDate.getDate() > startDate.getDate() && startDate.getDate() != currentDate.getDate() && startDate.getDate() != clickedDate.getDate())
                 ? setEndDate(clickedDate)
@@ -62,34 +68,23 @@ export default function Calendar({disabled, calendarSize, bookings}:ButtonProps)
         return(classes.filter(Boolean).join(' '))
     }
 
-    function showBookings(day:number, version:number){
+    function showBookings(day:number){
       if (bookings){
       return (
-        //version==1?
-        <div className="text-black text-[0.5rem] overflow-hidden"> 
+        <div className="text-black text-[0.5rem] h-[1.2rem] w-[3rem] overflow-auto align-left"> 
        {bookings.map((booking)=>(
         new Date(booking.startDate).getMonth() == currentMonth && 
               new Date(booking.startDate).getDate()<= day && day <= new Date(booking.endDate).getDate())
-        ?  (<div key={booking.id} className="grid  md:grid-cols-2">
-          <div>
-          <svg className=" text-white hover:opacity-80 transition" fill="Green" stroke="Green" viewBox= "0 0 24 24">
-                  <circle cx={20} cy={5} r={1} />
-                </svg></div><div>{booking.tool.name} </div></div>)
+              
+        ?  (<div key={booking.id} className="flex space-x-0 h-[0.5rem]">
+          <svg className="w-[0.8rem]" fill="Green" stroke="Green" viewBox= "0 0 24 24">
+                  <circle cx={10} cy={18} r={5} />
+                </svg>
+                {booking.tool.name}
+               </div>)
         : ''
         ) }
         </div>)
-      /*:   (bookings.map((booking)=>(
-        new Date(booking.startDate).getMonth() == currentMonth 
-        ? new Date(booking.startDate).getDate()== day && day != new Date(booking.endDate).getDate()
-            ? 'bg-emerald-200 rounded-s-xl' 
-          : day == new Date(booking.endDate).getDate() && day != new Date(booking.startDate).getDate()
-            ? 'bg-emerald-200  rounded-se-xl rounded-ee-xl'
-          : new Date(booking.startDate).getDate()< day && day < new Date(booking.endDate).getDate()
-            ? 'bg-emerald-200 '
-          : new Date(booking.startDate).getDate()== day && day == new Date(booking.endDate).getDate()
-          ? 'bg-emerald-200 rounded-xl'
-          : ' '
-        :' '))))}*/
       }}
         
       
@@ -139,21 +134,21 @@ export default function Calendar({disabled, calendarSize, bookings}:ButtonProps)
                     //showBookings(day+1, 0)
                   )} onClick={() => (handleDayClick(day+1))}
                 >{day + 1 }</button> 
-                <div className="h-[1rem]">
-                  {showBookings(day+1,1)}
+                <div className="h-[1.2rem]">
+                  {showBookings(day+1)}
                   </div>
                 </div>
             ))}
         </div>
-        <div className="events">
-           <div className='p-2 mb-2 mt-2 ml-[2rem] text-center table table-full rounded-full bg-gray-200 w-[20rem]'>
+        <div className="start/enddates mb:w-40 align-center">
+           <div className='p-2 mb-2 mt-2 ml-[2rem] text-center table table-full rounded-full bg-gray-200 mb:w-40'>
               <div className="table-row">
                 <div className="table-cell border-r border-gray-400">Start Date </div>
                 <div className="table-cell">End Date</div>
                 </div>
-                <div className="table-row">
-                <p className="table-cell border-r text-gray-400">{daysOfWeek[startDate.getDay()]+ " " + startDate.getDate() + " " + monthsOfYear[startDate.getMonth()]}</p>
-                <p className="table-cell  text-gray-400">{ daysOfWeek[endDate.getDay()]+ " " + endDate.getDate() + " " + monthsOfYear[endDate.getMonth()]} </p>
+                <div className="table-row w-40">
+                <p className="table-cell w-[15rem] border-r text-gray-400 p-1">{daysOfWeek[startDate.getDay()==0?6:startDate.getDay()-1]+ " " + startDate.getDate() + " " + monthsOfYear[startDate.getMonth()]}</p>
+                <p className="table-cell w-[15rem] text-gray-400 p-1">{ daysOfWeek[startDate.getDay()==0?6:startDate.getDay()-1]+ " " + endDate.getDate() + " " + monthsOfYear[endDate.getMonth()]} </p>
               </div>
             </div>
               
