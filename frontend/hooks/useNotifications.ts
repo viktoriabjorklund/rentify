@@ -21,7 +21,7 @@ export function useNotifications() {
         if (!token) return;
 
         // Fetch received requests (people wanting to rent YOUR tools)
-        const response = await fetch(`${API_BASE_URL}/api/requests/recieved`, {
+        const response = await fetch(`${API_BASE_URL}/api/requests/received`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

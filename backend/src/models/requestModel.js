@@ -113,6 +113,7 @@ export async function getRequestById(id) {
       price: true,
       renter: {
         select: {
+            id: true,
           username: true,
           name: true,
           surname: true,
