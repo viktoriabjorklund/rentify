@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import PrimaryButton from "@/components/PrimaryButton";
 import RequestTabs from "@/components/RequestTabs";
 import SubCategoryTabs from "@/components/SubCategoryTabs";
@@ -9,6 +10,7 @@ import {
   getSentRequests,
   markRequestAsViewed,
   updateRequestStatus,
+  deleteRequest,
 } from "../services/requestService";
 
 type RequestStatus = "new" | "accepted" | "rejected" | "pending";
@@ -17,6 +19,7 @@ type SubCategory = "pending" | "accepted" | "rejected";
 type Person = {
   id: string;
   name: string;
+  email?: string;
 };
 
 type RequestItem = {
@@ -99,6 +102,7 @@ const Avatar = () => (
 );
 
 export default function RequestsPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<"received" | "sent">("received");
   const [subCategory, setSubCategory] = useState<SubCategory>("pending");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -109,21 +113,42 @@ export default function RequestsPage() {
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [contactPerson, setContactPerson] = useState<{
     name: string;
-    phone?: string;
     email?: string;
   } | null>(null);
 
+  // Set initial tab from URL query parameter
+  useEffect(() => {
+    if (router.query.tab === "sent") {
+      setTab("sent");
+    }
+  }, [router.query.tab]);
+
   const handleRequestClick = async (item: RequestItem) => {
     setSelectedId(item.id);
-    if (item.side === "received" && item.status === "new" && !item.viewed) {
+    const shouldMarkViewed =
+      (item.side === "received" && item.status === "new" && !item.viewed) ||
+      (item.side === "sent" &&
+        (item.status === "accepted" || item.status === "rejected") &&
+        !item.viewed);
+
+    if (shouldMarkViewed) {
       try {
         await markRequestAsViewed(Number(item.id));
-        setReceivedData(
-          (prev) =>
-            prev?.map((req) =>
-              req.id === item.id ? { ...req, viewed: true } : req
-            ) ?? []
-        );
+        if (item.side === "received") {
+          setReceivedData(
+            (prev) =>
+              prev?.map((req) =>
+                req.id === item.id ? { ...req, viewed: true } : req
+              ) ?? []
+          );
+        } else {
+          setSentData(
+            (prev) =>
+              prev?.map((req) =>
+                req.id === item.id ? { ...req, viewed: true } : req
+              ) ?? []
+          );
+        }
       } catch (err) {
         console.error("Failed to mark request as viewed:", err);
       }
@@ -172,11 +197,31 @@ export default function RequestsPage() {
     }
   };
 
+  const handleDeleteRequest = async (requestId: string) => {
+    if (!confirm("Are you sure you want to delete this request?")) {
+      return;
+    }
+
+    try {
+      await deleteRequest(Number(requestId));
+      
+      // Remove from sent requests only
+      setSentData((prev) => prev?.filter((req) => req.id !== requestId) ?? []);
+      
+      // Clear selection if deleted item was selected
+      if (selectedId === requestId) {
+        setSelectedId(null);
+      }
+    } catch (err) {
+      console.error("Failed to delete request:", err);
+      setError("Failed to delete request. Please try again.");
+    }
+  };
+
   const handleContactOwner = (selected: RequestItem) => {
     setContactPerson({
       name: selected.detailName || selected.person.name,
-      phone: "test phone", // TODO: Get from backend //Corre
-      email: "test@test.com", // TODO: Get from backend // Corre
+      email: selected.person?.email,
     });
     setContactDialogOpen(true);
   };
@@ -185,8 +230,7 @@ export default function RequestsPage() {
     // For received requests, contact the renter
     setContactPerson({
       name: selected.detailName || selected.person.name,
-      phone: "test phone", // TODO: Get from backend //Corre
-      email: "test@test.com", // TODO: Get from backend /Corre
+      email: selected.person?.email,
     });
     setContactDialogOpen(true);
   };
@@ -205,6 +249,7 @@ export default function RequestsPage() {
       person: {
         id: String(r.tool?.user?.id ?? ""),
         name: firstName(r.tool?.user) || r.tool?.user?.username || "",
+        email: r.tool?.user?.username || undefined,
       },
       title: `You sent request to ${
         firstName(r.tool?.user) || r.tool?.user?.username || ""
@@ -212,7 +257,7 @@ export default function RequestsPage() {
       timeAgo: "",
       side: "sent",
       status: r.accepted ? "accepted" : r.pending ? "pending" : "rejected",
-      imageUrl: undefined,
+      imageUrl: r.tool?.photoURL || undefined,
       priceSek: r.price ?? r.tool?.price ?? undefined,
       dateFrom: r.startDate
         ? new Date(r.startDate)
@@ -243,14 +288,15 @@ export default function RequestsPage() {
       person: {
         id: String(r.renter?.id ?? ""),
         name: firstName(r.renter) || r.renter?.username || "",
+        email: r.renter?.username || undefined,
       },
       title: `${
         firstName(r.renter) || r.renter?.username || "Someone"
-      } send a request`,
+      } sent a request`,
       timeAgo: "",
       side: "received",
       status: r.pending ? "new" : r.accepted ? "accepted" : "rejected",
-      imageUrl: undefined,
+      imageUrl: r.tool?.photoURL || undefined,
       priceSek: r.price ?? r.tool?.price ?? undefined,
       dateFrom: r.startDate
         ? new Date(r.startDate)
@@ -289,9 +335,8 @@ export default function RequestsPage() {
 
   const currentList: RequestItem[] = useMemo(() => {
     const backend = tab === "received" ? receivedData : sentData;
-    const allRequests = (backend ?? []).filter(
-      (req) => req.status !== "rejected"
-    );
+    // Include all requests (also rejected). Subcategory filtering below decides visibility.
+    const allRequests = backend ?? [];
 
     // Filter based on subcategory
     return allRequests.filter((req) => {
@@ -301,6 +346,8 @@ export default function RequestsPage() {
             return req.status === "new"; // All new requests (both viewed and not viewed)
           case "accepted":
             return req.status === "accepted";
+          case "rejected":
+            return req.status === "rejected";
           default:
             return false;
         }
@@ -323,20 +370,41 @@ export default function RequestsPage() {
   const list = currentList;
   const selected = list.find((d) => d.id === selectedId) || null;
 
-  const counts = useMemo(
+  // Header blue badges: unviewed counts per tab
+  const headerCounts = useMemo(
     () => ({
       received: {
-        pending: (receivedData ?? []).filter(
+        unviewed: (receivedData ?? []).filter(
           (req) => req.status === "new" && !req.viewed
-        ).length,
-        accepted: (receivedData ?? []).filter(
-          (req) => req.status === "accepted"
         ).length,
       },
       sent: {
-        pending: (sentData ?? []).filter(
-          (req) => req.status === "pending" && !req.viewed
+        unviewed: (sentData ?? []).filter(
+          (req) =>
+            (req.status === "accepted" || req.status === "rejected") &&
+            !req.viewed
         ).length,
+      },
+    }),
+    [receivedData, sentData]
+  );
+
+  // Subcategory badge counts: totals per status (Pending ignores viewed)
+  const subcategoryCounts = useMemo(
+    () => ({
+      received: {
+        pending: (receivedData ?? []).filter((req) => req.status === "new")
+          .length,
+        accepted: (receivedData ?? []).filter(
+          (req) => req.status === "accepted"
+        ).length,
+        rejected: (receivedData ?? []).filter(
+          (req) => req.status === "rejected"
+        ).length,
+      },
+      sent: {
+        pending: (sentData ?? []).filter((req) => req.status === "pending")
+          .length,
         accepted: (sentData ?? []).filter((req) => req.status === "accepted")
           .length,
         rejected: (sentData ?? []).filter((req) => req.status === "rejected")
@@ -368,7 +436,7 @@ export default function RequestsPage() {
             {/* Tabs */}
             <RequestTabs
               active={tab}
-              counts={counts}
+              counts={headerCounts}
               onChange={(next) => {
                 setTab(next);
                 setSubCategory("pending");
@@ -378,7 +446,11 @@ export default function RequestsPage() {
 
             <SubCategoryTabs
               active={subCategory}
-              counts={tab === "received" ? counts.received : counts.sent}
+              counts={
+                tab === "received"
+                  ? subcategoryCounts.received
+                  : subcategoryCounts.sent
+              }
               onChange={(next) => {
                 setSubCategory(next);
                 setSelectedId(null);
@@ -403,14 +475,22 @@ export default function RequestsPage() {
                   >
                     <Avatar />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-emerald-900 titillium-web-semibold">
-                        {item.title}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-emerald-900 titillium-web-semibold">
+                          {item.title}
+                        </p>
+                        {(item.status === "new" &&
+                          !item.viewed &&
+                          item.side === "received") ||
+                        (item.side === "sent" &&
+                          (item.status === "accepted" ||
+                            item.status === "rejected") &&
+                          !item.viewed) ? (
+                          <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#318EFF] flex-shrink-0" />
+                        ) : null}
+                      </div>
                       <div className="mt-1 flex items-center gap-3 text-emerald-900/70">
                         <span className="text-sm">{item.timeAgo}</span>
-                        {item.status === "new" && !item.viewed && (
-                          <span className="inline-block h-2 w-2 rounded-full bg-[#318EFF]" />
-                        )}
                         {item.status === "accepted" && (
                           <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-900">
                             Accepted
@@ -450,9 +530,17 @@ export default function RequestsPage() {
               </div>
             ) : tab === "received" ? (
               <div className="w-full">
-                <h3 className="mb-8 text-3xl md:text-4xl text-emerald-900 text-center titillium-web-semibold">
+                <h3
+                  className={`mb-8 text-3xl md:text-4xl text-center titillium-web-semibold ${
+                    selected.status === "rejected"
+                      ? "text-red-700"
+                      : "text-emerald-900"
+                  }`}
+                >
                   {selected.status === "accepted"
                     ? `You have accepted ${selected.person.name}'s request`
+                    : selected.status === "rejected"
+                    ? `You have rejected ${selected.person.name}'s request`
                     : `${selected.person.name} wants to rent your hammer`}
                 </h3>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_380px] items-center">
@@ -492,37 +580,52 @@ export default function RequestsPage() {
                         {selected.priceSek} SEK
                       </span>
                     </p>
-                    <div className="mt-4 flex items-center justify-center gap-4">
-                      {selected.status === "accepted" ? (
-                        <PrimaryButton
-                          className="bg-[#318EFF] hover:bg-[#1F73E6]"
-                          onClick={() => handleContactRenter(selected)}
-                        >
-                          Contact renter
-                        </PrimaryButton>
-                      ) : (
-                        <>
+                    <div className="mt-4 flex flex-col items-center gap-3">
+                      <div className="flex items-center gap-4">
+                        {selected.status === "accepted" ? (
                           <PrimaryButton
-                            className="bg-red-500 hover:bg-red-600"
-                            onClick={() => handleReject(selected.id)}
+                            className="bg-[#318EFF] hover:bg-[#1F73E6]"
+                            onClick={() => handleContactRenter(selected)}
                           >
-                            Reject
+                            Contact renter
                           </PrimaryButton>
-                          <span className="text-emerald-900/70">or</span>
+                        ) : selected.status === "rejected" ? (
                           <PrimaryButton
-                            onClick={() => handleAccept(selected.id)}
+                            className="bg-[#318EFF] hover:bg-[#1F73E6]"
+                            onClick={() => handleContactRenter(selected)}
                           >
-                            Accept
+                            Contact renter
                           </PrimaryButton>
-                        </>
-                      )}
+                        ) : (
+                          <>
+                            <PrimaryButton
+                              className="bg-red-500 hover:bg-red-600"
+                              onClick={() => handleReject(selected.id)}
+                            >
+                              Reject
+                            </PrimaryButton>
+                            <span className="text-emerald-900/70">or</span>
+                            <PrimaryButton
+                              onClick={() => handleAccept(selected.id)}
+                            >
+                              Accept
+                            </PrimaryButton>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="w-full">
-                <h3 className="mb-6 text-3xl text-emerald-900 text-center titillium-web-semibold">
+                <h3
+                  className={`mb-6 text-3xl text-center titillium-web-semibold ${
+                    selected.status === "rejected"
+                      ? "text-red-700"
+                      : "text-emerald-900"
+                  }`}
+                >
                   {selected.status === "pending"
                     ? `Waiting for ${selected.person.name} to respond to your request`
                     : selected.status === "accepted"
@@ -566,13 +669,28 @@ export default function RequestsPage() {
                         {selected.priceSek} SEK
                       </span>
                     </p>
-                    <div className="mt-6 flex justify-center">
-                      <PrimaryButton
-                        className="bg-[#318EFF] hover:bg-[#1F73E6]"
-                        onClick={() => handleContactOwner(selected)}
-                      >
-                        Contact Owner
-                      </PrimaryButton>
+                    <div className="mt-6 flex flex-col gap-3">
+                      {(selected.status === "accepted" ||
+                        selected.status === "rejected") && (
+                        <div className="flex justify-center">
+                          <PrimaryButton
+                            className="bg-[#318EFF] hover:bg-[#1F73E6]"
+                            onClick={() => handleContactOwner(selected)}
+                          >
+                            Contact Owner
+                          </PrimaryButton>
+                        </div>
+                      )}
+                      {selected.status !== "accepted" && (
+                        <div className="flex justify-center">
+                          <PrimaryButton
+                            className="bg-red-500 hover:bg-red-600"
+                            onClick={() => handleDeleteRequest(selected.id)}
+                          >
+                            Delete Request
+                          </PrimaryButton>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -586,7 +704,6 @@ export default function RequestsPage() {
       <ContactDialog
         isOpen={contactDialogOpen}
         onClose={() => setContactDialogOpen(false)}
-        phoneNumber={contactPerson?.phone}
         email={contactPerson?.email}
         ownerName={contactPerson?.name}
       />
