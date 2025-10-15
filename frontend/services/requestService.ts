@@ -94,7 +94,7 @@ export async function getReceivedRequests(): Promise<BackendRequest[]> {
     "Content-Type": "application/json",
     ...authHeaders(),
   };
-  const res = await fetch(`${API_BASE_URL}/api/requests/received`, {
+  const res = await fetch(`${API_BASE_URL}/api/requests/recieved`, {
     method: "GET",
     headers,
   });

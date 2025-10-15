@@ -35,8 +35,8 @@ export function useNotifications() {
         });
 
         let total = 0;
-        if (recRes.ok) {
-          const received = await recRes.json();
+        if (response.ok) {
+          const received = await response.json();
           // Unviewed new requests for owner: pending true and not viewed
           total += received.filter(
             (r: any) => r && r.pending === true && !r.viewed
