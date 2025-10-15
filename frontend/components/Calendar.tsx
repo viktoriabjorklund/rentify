@@ -70,7 +70,11 @@ export default function Calendar({disabled, calendarSize, bookings}:ButtonProps)
        {bookings.map((booking)=>(
         new Date(booking.startDate).getMonth() == currentMonth && 
               new Date(booking.startDate).getDate()<= day && day <= new Date(booking.endDate).getDate())
-        ?  booking.tool.name
+        ?  (<div key={booking.id} className="grid  md:grid-cols-2">
+          <div>
+          <svg className=" text-white hover:opacity-80 transition" fill="Green" stroke="Green" viewBox= "0 0 24 24">
+                  <circle cx={20} cy={5} r={1} />
+                </svg></div><div>{booking.tool.name} </div></div>)
         : ''
         ) }
         </div>)
@@ -92,7 +96,6 @@ export default function Calendar({disabled, calendarSize, bookings}:ButtonProps)
     
 
     return(
-    
     <div className="calendar grid grid-cols-1 content-center" style={{maxWidth:calendarSize}}>
         <div className="navigate-date grid grid-cols-1 md:grid-cols-4 gap-8 h-8">
             <button type='button' onClick={prevMonth} className="-my-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500">
@@ -136,7 +139,9 @@ export default function Calendar({disabled, calendarSize, bookings}:ButtonProps)
                     //showBookings(day+1, 0)
                   )} onClick={() => (handleDayClick(day+1))}
                 >{day + 1 }</button> 
+                <div className="h-[1rem]">
                   {showBookings(day+1,1)}
+                  </div>
                 </div>
             ))}
         </div>
