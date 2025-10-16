@@ -53,7 +53,7 @@ export function useLocationSearch(debounceMs: number = 300) {
    */
   const selectLocation = useCallback((location: LocationResult) => {
     setShowSuggestions(false);
-    setSuggestions([]);
+    setSuggestions([location]);
     return location;
   }, []);
 
@@ -70,7 +70,14 @@ export function useLocationSearch(debounceMs: number = 300) {
    */
   const showExistingSuggestions = useCallback(() => {
     if (suggestions.length > 0) {
+      //setSuggestions([]);
       setShowSuggestions(true);
+    }
+  }, [suggestions]);
+
+  const hideExistingSuggestions = useCallback(() => {
+    if (suggestions.length > 0) {
+      setShowSuggestions(false);
     }
   }, [suggestions]);
 
@@ -83,6 +90,7 @@ export function useLocationSearch(debounceMs: number = 300) {
     selectLocation,
     clearSuggestions,
     showExistingSuggestions,
+    hideExistingSuggestions,
   };
 }
 

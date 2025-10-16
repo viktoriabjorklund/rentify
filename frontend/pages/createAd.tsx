@@ -14,7 +14,7 @@ export default function CreateAd() {
   // Form state
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
-  const [place, setPlace] = useState("");
+  const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
 
@@ -25,6 +25,7 @@ export default function CreateAd() {
     loading: loadingLocations,
     search: searchLocations,
     selectLocation,
+    hideExistingSuggestions,
     showExistingSuggestions,
   } = useLocationSearch();
 
@@ -44,8 +45,8 @@ export default function CreateAd() {
   };
 
   // Handle place input change
-  const handlePlaceChange = (value: string) => {
-    setPlace(value);
+  const handleLocationChange = (value: string) => {
+    setLocation(value);
     searchLocations(value); // Debouncing handled by hook
   };
 
@@ -56,8 +57,21 @@ export default function CreateAd() {
     const locationString = location.kommun 
       ? `${location.city}, ${location.kommun}` 
       : location.city;
-    setPlace(locationString);
+    setLocation(locationString);
   };
+
+  // Check existing location
+   function existingLocation(maybeLocation: string){
+    if (locationSuggestions.length == 1 && locationSuggestions[0].kommun != undefined && maybeLocation.split(", ").length==2){
+      if (maybeLocation.split(", ")[0] == locationSuggestions[0].city && locationSuggestions[0].kommun ==maybeLocation.split(", ")[1]) 
+        return true
+    }
+    if(locationSuggestions.length == 1 && locationSuggestions[0].kommun == undefined){
+      if (maybeLocation == locationSuggestions[0].city) 
+        return true
+    }
+    return false
+  }
 
   // Handle submit - uses ViewModel hook
   const handleAddItem = async () => {
@@ -65,9 +79,19 @@ export default function CreateAd() {
       return alert("You must be logged in");
     }
 
-    if (!title || !price || !place) {
-      return alert("Please fill in all required fields");
+    if (!title) {
+      return alert("Please enter a title");
     }
+    if (!price) {
+      return alert("Please enter a price");
+    }
+    if (!location) {
+      return alert("Please enter a location");
+    }
+    if (!existingLocation(location)) {
+      return alert("Please enter a valid location");
+    }
+    
 
     try {
       setSubmitting(true);
@@ -77,7 +101,7 @@ export default function CreateAd() {
         name: title,
         description: description,
         price: Number(price),
-        location: place,
+        location: location,
         category: category,
         photo: selectedFile || undefined,
       });
@@ -145,6 +169,7 @@ export default function CreateAd() {
                   className="border border-black rounded-lg px-2 py-1"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  onFocus={hideExistingSuggestions}
                 />
               </div>
 
@@ -154,6 +179,7 @@ export default function CreateAd() {
                   className="border border-black rounded-lg px-2 py-1 w-full"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
+                  onFocus={hideExistingSuggestions}
                 >
                   <option value=""></option>
                   <option value="electronics">Electronics</option>
@@ -162,13 +188,13 @@ export default function CreateAd() {
                   <option value="other">Other</option>
                 </select>
 
-                <p>Place:</p>
+                <p>Location:</p>
                 <div className="relative w-full">
                   <input
                     type="text"
                     className="border border-black rounded-lg px-2 py-1 w-full"
-                    value={place}
-                    onChange={(e) => handlePlaceChange(e.target.value)}
+                    value={location}
+                    onChange={(e) => handleLocationChange(e.target.value)}
                     onFocus={showExistingSuggestions}
                   />
                   {loadingLocations && (
@@ -204,7 +230,8 @@ export default function CreateAd() {
                   type="text"
                   className="border border-black rounded-lg px-2 py-1"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e) => setPrice(e.target.value)
+                  }onFocus={hideExistingSuggestions}
                 />
                 <p>SEK per day</p>
               </div>
@@ -216,6 +243,7 @@ export default function CreateAd() {
                   className="border border-black rounded-lg px-2 py-1"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  onFocus={hideExistingSuggestions}
                 />
               </div>
             </div>
