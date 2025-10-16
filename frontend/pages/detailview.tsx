@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import MeatballsMenu from "../components/MeatballsMenu";
@@ -40,8 +41,8 @@ export default function DetailView() {
   const imageSrc =
     tool.photoURL
       ? (tool.photoURL.startsWith("http")
-          ? tool.photoURL
-          : `${API_BASE}${tool.photoURL.startsWith("/") ? "" : "/"}${tool.photoURL}`)
+        ? tool.photoURL
+        : `${API_BASE}${tool.photoURL.startsWith("/") ? "" : "/"}${tool.photoURL}`)
       : null;
 
   return (
@@ -49,15 +50,15 @@ export default function DetailView() {
       <div className="flex flex-col items-center justify-center w-3/4 gap-8">
         <p className="text-4xl text-[#3A7858]">{tool.name}</p>
 
-        <div className="flex flex-col gap-12 bg-white p-8 rounded-lg w-full pb-24">
-          <div className="flex justify-end items-center">
+        <div className="flex flex-col gap-12 bg-white p-8 rounded-lg w-full border border-green-700">
+          <div className="flex justify-end items-end">
             {/* To only show actions if this user owns the tool: isOwner && <MeatballsMenu toolId={tool.id} onDeletedRedirec */}
             <MeatballsMenu toolId={tool.id} onDeletedRedirect="/yourtools" />
           </div>
 
-          <div className="flex gap-8">
+          <div className="flex gap-8 text-black mb-12 items-center">
             {/* Image */}
-            <div className="basis-1/2 items-center justify-center flex">
+            <div className="basis-1/2 items-center justify-center flex ">
               {imageSrc ? (
                 <img
                   src={imageSrc}
@@ -71,35 +72,34 @@ export default function DetailView() {
               )}
             </div>
 
-            {/* Info */}
-            <div className="basis-1/2 flex flex-col gap-4 p-4">
-              <div className="flex gap-2">
-                <p className="font-medium">Title:</p>
-                <p>{tool.name}</p>
-              </div>
 
-              <div className="flex gap-2">
-                <p className="font-medium">Place:</p>
-                <p>{tool.location || "-"}</p>
-              </div>
+<div className="basis-1/2 p-4 border border-[#2FA86E] rounded-lg mr-16">
+  <div className="grid grid-cols-[12rem_1fr] gap-x-2 gap-y-3 text-xl">
+    <div className="justify-self-start text-right whitespace-nowrap">Title:</div>
+    <div className="font-bold">{tool.name}</div>
 
-              <div className="flex gap-2">
-                <p className="font-medium">Price:</p>
-                <p>{tool.price != null ? `${tool.price} SEK per day` : "-"}</p>
-              </div>
+    {tool.user && (
+      <>
+        <div className="justify-self-start text-right whitespace-nowrap ">Owner:</div>
+        <div className="font-bold">{tool.user.name || tool.user.username}</div>
+      </>
+    )}
 
-              <div className="flex flex-col gap-2">
-                <p className="font-medium">Description:</p>
-                <p>{tool.description || "-"}</p>
-              </div>
+    <div className="justify-self-start text-right whitespace-nowrap">Place:</div>
+    <div className="font-bold">{tool.location || "-"}</div>
 
-              {tool.user && (
-                <div className="flex gap-2">
-                  <p className="font-medium">Owner:</p>
-                  <p>{tool.user.name || tool.user.username}</p>
-                </div>
-              )}
-            </div>
+    <div className="justify-self-start text-right whitespace-nowrap">Category:</div>
+    <div className="font-bold">{(tool as any).category || "-"}</div>
+
+    <div className="justify-self-start text-right whitespace-nowrap">Price:</div>
+    <div className="font-bold">{tool.price != null ? `${tool.price} SEK per day` : "-"}</div>
+
+    <div className="justify-self-start text-right whitespace-nowrap">Description:</div>
+    <div className="font-bold">{tool.description || "-"}</div>
+  </div>
+</div>
+
+
           </div>
         </div>
       </div>

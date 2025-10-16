@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { Tool } from "../services/toolService";
+import Link from "next/link";
 
 type ToolListProps = {
   tools: Tool[];
@@ -96,6 +97,12 @@ export default function ToolList({
       aria-label="Tools"
     >
       {tools.map((tool) => (
+        <Link
+        key={tool.id}
+        href={{ pathname: "/detailview", query: { id: tool.id } }}
+        className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 hover:shadow-md transition"
+        aria-label={`Open ${tool.name}`}
+      >
         <ToolCard 
           key={tool.id} 
           tool={tool} 
@@ -103,6 +110,7 @@ export default function ToolList({
           showDescription={showDescription}
           onNavigate={handleNavigate}
         />
+        </Link>
       ))}
     </section>
   );
