@@ -14,7 +14,7 @@
   "validate:dev": "dotenv -e .env -- npx prisma validate --schema=prisma/schema.prisma",
   "validate:test": "dotenv -e .env.test -- npx prisma validate --schema=prisma/schema.test.prisma",
 
-  "postinstall": "npx prisma generate --schema=prisma/schema.prisma && npx prisma db push --schema=prisma/schema.prisma"
+  "postinstall": "if [ \"$SKIP_PRISMA_GENERATE\" != \"true\" ]; then npx prisma generate; fi"
 },
   "keywords": [],
   "author": "",
