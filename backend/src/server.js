@@ -31,7 +31,7 @@ const allowedOrigins = [
   "http://localhost:3002",
   "http://localhost:3003",
   "http://localhost:3004",
-  "https://rentify-frontend-ge6g.onrender.com",
+  "https://rentify-psi-roan.vercel.app/",
 ];
 
 app.use(
