@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { displayTool, updateTool, Tool } from "../services/toolService";
@@ -186,6 +187,8 @@ export default function EditAd() {
                 />
                 <p>SEK per day</p>
               </div>
+
+
 
               <div className="flex flex-col gap-2">
                 <p>Description:</p>
