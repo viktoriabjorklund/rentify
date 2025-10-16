@@ -3,11 +3,19 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
-  "scripts": {
-    "dev": "node --watch --env-file=.env ./src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "npx prisma generate && npx prisma db push"
-  },
+"scripts": {
+  "dev:generate": "npx prisma generate --schema=prisma/schema.prisma",
+  "dev": "npm run dev:generate && dotenv -e .env -- node --watch ./src/server.js",
+
+  "test:setup": "dotenv -e .env.test -- npx prisma db push --schema=prisma/schema.test.prisma --force-reset",
+  "test:generate": "dotenv -e .env.test -- npx prisma generate --schema=prisma/schema.test.prisma",
+  "test": "npm run test:setup && npm run test:generate && dotenv -e .env.test -- cross-env NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --runInBand",
+
+  "validate:dev": "dotenv -e .env -- npx prisma validate --schema=prisma/schema.prisma",
+  "validate:test": "dotenv -e .env.test -- npx prisma validate --schema=prisma/schema.test.prisma",
+
+  "postinstall": "if [ \"$SKIP_PRISMA_GENERATE\" != \"true\" ]; then npx prisma generate; fi"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -31,6 +39,10 @@
   },
   "devDependencies": {
     "@types/ws": "^8.18.1",
-    "nodemon": "^3.1.10"
+    "cross-env": "^10.1.0",
+    "dotenv-cli": "^10.0.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.4"
   }
 }

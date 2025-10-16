@@ -81,7 +81,15 @@ export async function deleteTool(id) {
 export async function displayTool(id) {
   return prisma.tool.findUnique({
     where: { id: Number(id) },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      price: true,
+      location: true,
+      category: true,
+      photoURL: true,
+      userId: true,
       user: {
         select: {
           id: true,
@@ -93,6 +101,7 @@ export async function displayTool(id) {
     },
   });
 }
+
 
 
 export async function getToolsByUser(userId) {

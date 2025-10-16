@@ -1,5 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 import { API_URL } from "../api.js"
+import { useEffect, useState } from "react";
+
 
 export type User = {
   id: number;
@@ -107,4 +109,37 @@ export function removeToken(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   }
+}
+
+export function useAuth() {
+  const [user, setUser] = useState<ReturnType<typeof getStoredUser> | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const storedUser = getStoredUser();
+    const storedToken = getStoredToken();
+
+    if (storedUser && storedToken) {
+      setUser(storedUser);
+      setToken(storedToken);
+      setIsAuthenticated(true);
+    } else {
+      setUser(null);
+      setToken(null);
+      setIsAuthenticated(false);
+    }
+
+    setIsLoading(false);
+  }, []);
+
+  const logout = () => {
+    removeToken();
+    setUser(null);
+    setToken(null);
+    setIsAuthenticated(false);
+  };
+
+  return { user, token, isLoading, isAuthenticated, logout };
 }

@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import { Tool } from "../services/toolService";
 import Link from "next/link";
 
@@ -10,13 +11,24 @@ type ToolListProps = {
   className?: string;
 };
 
-function ToolCard({ tool, showUser = false, showDescription = false }: { 
-  tool: Tool; 
-  showUser?: boolean; 
-  showDescription?: boolean; 
-}) {
+type ToolCardProps = {
+  tool: Tool;
+  showUser?: boolean;
+  showDescription?: boolean;
+  onNavigate: (id: number) => void;
+};
+
+function ToolCard({ 
+  tool, 
+  showUser = false, 
+  showDescription = false,
+  onNavigate
+}: ToolCardProps) {
   return (
-    <article className="transition hover:opacity-80">
+    <article
+      onClick={() => onNavigate(tool.id)}
+      className="transition hover:opacity-80 cursor-pointer"
+    >
       <div className="aspect-[16/10] w-full bg-gray-200 rounded-2xl overflow-hidden relative">
         {tool.photoURL ? (
           <Image
@@ -31,6 +43,7 @@ function ToolCard({ tool, showUser = false, showDescription = false }: {
           </div>
         )}
       </div>
+
       <div className="pt-2 px-2">
         <h3 className="text-lg font-bold text-emerald-900 mb-2">{tool.name}</h3>
         <p className="text-gray-800 mb-2">
@@ -39,7 +52,7 @@ function ToolCard({ tool, showUser = false, showDescription = false }: {
         {showDescription && tool.description && (
           <p className="text-sm text-gray-600 mb-2">{tool.description}</p>
         )}
-        {showUser && (
+        {showUser && tool.user && (
           <p className="text-xs text-gray-500">By: {tool.user.username}</p>
         )}
       </div>
@@ -53,6 +66,23 @@ export default function ToolList({
   showDescription = false, 
   className = "" 
 }: ToolListProps) {
+  const router = useRouter();
+  const [loading, setLoading] = React.useState(false);
+
+  const handleNavigate = (id: number) => {
+    setLoading(true);
+    router.push(`/${id}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+        <p className="text-gray-600 mt-2">Loading tool...</p>
+      </div>
+    );
+  }
+
   if (tools.length === 0) {
     return (
       <div className="text-center py-8">
@@ -78,6 +108,7 @@ export default function ToolList({
           tool={tool} 
           showUser={showUser}
           showDescription={showDescription}
+          onNavigate={handleNavigate}
         />
         </Link>
       ))}
