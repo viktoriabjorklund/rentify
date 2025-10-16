@@ -14,7 +14,7 @@ export default function CreateAd() {
   // Form state
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
-  const [place, setPlace] = useState("");
+  const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
 
@@ -45,8 +45,8 @@ export default function CreateAd() {
   };
 
   // Handle place input change
-  const handlePlaceChange = (value: string) => {
-    setPlace(value);
+  const handleLocationChange = (value: string) => {
+    setLocation(value);
     searchLocations(value); // Debouncing handled by hook
   };
 
@@ -57,7 +57,7 @@ export default function CreateAd() {
     const locationString = location.kommun 
       ? `${location.city}, ${location.kommun}` 
       : location.city;
-    setPlace(locationString);
+    setLocation(locationString);
   };
 
   // Check existing location
@@ -79,9 +79,19 @@ export default function CreateAd() {
       return alert("You must be logged in");
     }
 
-    if (!title || !price || !place ||  !existingLocation(place)) {
-      return alert("Please fill in all required fields");
+    if (!title) {
+      return alert("Please enter a title");
     }
+    if (!price) {
+      return alert("Please enter a price");
+    }
+    if (!location) {
+      return alert("Please enter a location");
+    }
+    if (!existingLocation(location)) {
+      return alert("Please enter a valid location");
+    }
+    
 
     try {
       setSubmitting(true);
@@ -91,7 +101,7 @@ export default function CreateAd() {
         name: title,
         description: description,
         price: Number(price),
-        location: place,
+        location: location,
         category: category,
         photo: selectedFile || undefined,
       });
@@ -178,13 +188,13 @@ export default function CreateAd() {
                   <option value="other">Other</option>
                 </select>
 
-                <p>Place:</p>
+                <p>Location:</p>
                 <div className="relative w-full">
                   <input
                     type="text"
                     className="border border-black rounded-lg px-2 py-1 w-full"
-                    value={place}
-                    onChange={(e) => handlePlaceChange(e.target.value)}
+                    value={location}
+                    onChange={(e) => handleLocationChange(e.target.value)}
                     onFocus={showExistingSuggestions}
                   />
                   {loadingLocations && (
