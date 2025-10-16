@@ -14,6 +14,16 @@ const normalizePlace = (loc?: string | null) => {
   return "other";
 };
 
+const normalizeCategory = (loc?: string | null) => {
+  const v = (loc || "").toLowerCase();
+  if (v === "electronics") return "electronics";
+  if (v === "furniture") return "furniture";
+  if (v === "tools" || v === "tools") return "tools";
+  if (v === "") return "";
+  return "other";
+};
+
+
 export default function EditAd() {
   const router = useRouter();
   const id = Number(router.query.id);
@@ -21,6 +31,7 @@ export default function EditAd() {
   const [tool, setTool] = useState<Tool | null>(null);
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
+  const [category, setCategory] = useState("");
   const [price, setPrice] = useState<string>("");
   const [description, setDescription] = useState("");
 
@@ -43,6 +54,7 @@ export default function EditAd() {
         setTool(t);
         setTitle(t.name || "");
         setPlace(normalizePlace(t.location));
+        setCategory(normalizeCategory(t.category));
         setPrice(t.price != null ? String(t.price) : "");
         setDescription(t.description || "");
         if (t.photoURL) {
@@ -79,6 +91,7 @@ export default function EditAd() {
         description: description,
         price: price ? Number(price) : undefined,
         location: place,
+        category: category,
         photo: selectedFile || undefined,
       });
 
@@ -103,8 +116,8 @@ export default function EditAd() {
       <div className="flex flex-col items-center justify-center w-3/4 gap-8">
         <p className="text-4xl text-[#3A7858]">Edit “{tool.name}”</p>
 
-        <div className="flex flex-col gap-12 bg-white p-8 rounded-lg w-full">
-          <div className="flex gap-8">
+        <div className="flex flex-col gap-12 bg-white p-8 rounded-lg w-full border border-[#174B33]">
+          <div className="flex gap-8 mt-16">
             {/* Image */}
             <div className="basis-1/2 items-center justify-center flex">
               <label className="cursor-pointer">
@@ -124,7 +137,7 @@ export default function EditAd() {
             </div>
 
             {/* Form */}
-            <div className="basis-1/2 flex flex-col gap-4 p-4">
+            <div className="basis-1/2 flex flex-col gap-4">
               <div className="flex gap-2">
                 <p>Title:</p>
                 <input
@@ -142,10 +155,23 @@ export default function EditAd() {
                   value={place}
                   onChange={(e) => setPlace(e.target.value)}
                 >
-                  <option value=""></option>
                   <option value="stockholm">Stockholm</option>
                   <option value="gothenburg">Gothenburg</option>
                   <option value="malmo">Malmö</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2">
+                <p>Category:</p>
+                <select
+                  className="border border-black rounded-lg px-2 py-1 w-full"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option value="electronics">Electronics</option>
+                  <option value="furniture">Furniture</option>
+                  <option value="tools">Tools</option>
                   <option value="other">Other</option>
                 </select>
               </div>
