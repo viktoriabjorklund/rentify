@@ -96,10 +96,25 @@ export default function BookingsPage() {
 
   if (loading) {
     return (
-      <section className="flex justify-center items-center h-screen bg-gray-50">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-emerald-500 border-solid mb-4"></div>
-          <p className="text-emerald-900 text-lg font-medium">Loading bookings...</p>
+      <section className="flex flex-col gap-6 h-screen bg-gray-50">
+        <div className="mx-auto max-w-7xl px-6 pt-10 md:pt-14">
+          <h1
+            className="text-4xl md:text-5xl tracking-tight text-emerald-900"
+            style={{
+              fontFamily:
+                "Righteous, ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
+            }}
+          >
+            Bookings
+          </h1>
+        </div>
+        <div className="flex flex-1 justify-center items-center">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-emerald-500 border-solid mb-4"></div>
+            <p className="text-emerald-900 text-lg font-medium">
+              Loading bookings...
+            </p>
+          </div>
         </div>
       </section>
     );
@@ -108,11 +123,31 @@ export default function BookingsPage() {
   if (bookings && bookings.length > 0) {
     return (
       <section style={{ alignContent: "center" }}>
+        <div className="mx-auto max-w-7xl px-6 pt-10 md:pt-14">
+          <h1
+            className="text-4xl md:text-5xl tracking-tight text-emerald-900"
+            style={{
+              fontFamily:
+                "Righteous, ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
+            }}
+          >
+            Bookings
+          </h1>
+        </div>
         <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 mr-15 ml-15 mb-10 mt-10">
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-2">
             {/* Left side of page */}
-            <section className="pl-[8rem]" style={{ alignItems: "last-baseline" }}>
-              <Calendar calendarSize={400} bookings={bookings} />
+            <section
+              className="pl-[8rem]"
+              style={{ alignItems: "last-baseline" }}
+            >
+              <Calendar
+                calendarSize={400}
+                bookings={bookings}
+                currentUserId={
+                  user?.id ?? Number(localStorage.getItem("userId"))
+                }
+              />
             </section>
 
             {/* Right side of page */}
@@ -136,16 +171,22 @@ export default function BookingsPage() {
                         className={classNames(
                           `rounded-xl text-white m-2 p-2 pt-4 pb-4`,
                           highlight?.includes(booking.id)
-                            ? "bg-emerald-400"
+                            ? isMyBooking
+                              ? "bg-[#5FBFFB]"
+                              : "bg-emerald-400"
+                            : isMyBooking
+                            ? "bg-[#2C80EA]"
                             : "bg-emerald-600"
                         )}
                       >
                         <div className="table-row">
                           <div className="table-cell border-r border-white pr-1 w-[30rem]">
                             <div>
-                              {`${monthsOfYear[
-                                new Date(booking.startDate).getMonth()
-                              ]} ${new Date(
+                              {`${
+                                monthsOfYear[
+                                  new Date(booking.startDate).getMonth()
+                                ]
+                              } ${new Date(
                                 booking.startDate
                               ).getDate()} ${new Date(
                                 booking.startDate
@@ -153,9 +194,11 @@ export default function BookingsPage() {
                             </div>
                             <div>
                               {"to " +
-                                `${monthsOfYear[
-                                  new Date(booking.endDate).getMonth()
-                                ]} ${new Date(
+                                `${
+                                  monthsOfYear[
+                                    new Date(booking.endDate).getMonth()
+                                  ]
+                                } ${new Date(
                                   booking.endDate
                                 ).getDate()} ${new Date(
                                   booking.endDate
@@ -235,6 +278,17 @@ export default function BookingsPage() {
   } else {
     return (
       <section style={{ alignContent: "center" }}>
+        <div className="mx-auto max-w-7xl px-6 pt-10 md:pt-14">
+          <h1
+            className="text-4xl md:text-5xl tracking-tight text-emerald-900"
+            style={{
+              fontFamily:
+                "Righteous, ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
+            }}
+          >
+            Bookings
+          </h1>
+        </div>
         <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-8 mr-15 ml-15 mb-10 mt-10">
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-2">
             {/* Left side of page */}

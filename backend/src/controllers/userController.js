@@ -65,31 +65,39 @@ export async function login(req, res) {
 }
 
 export async function updateUser(req, res) {
-  try {
-    const { name, surname, password } = req.body;
-    const { id } = req.params;
-    const updated = await userModel.updateUser(id, name, surname, password);
-    res.json(updated);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}
-
-export async function deleteUser(req, res) {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (Number.isNaN(id)) return res.status(400).json({ error: "Invalid user id" });
-
-    if (req.userId !== id) {
-      return res.status(403).json({ error: "Forbidden" });
+    try {
+      const { id } = req.params;
+      const { name, surname, password } = req.body;
+      const loggedInUserId = req.userId;
+  
+      if (parseInt(id) !== loggedInUserId) {
+        return res.status(403).json({ error: "Not authorized to update this user" });
+      }
+  
+      const updated = await userModel.updateUser(id, name, surname, password);
+      res.status(200).json(updated);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    await userModel.deleteUser(id);
-    res.json({ message: "User deleted" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-}
+  
+
+  export async function deleteUser(req, res) {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (Number.isNaN(id)) return res.status(400).json({ error: "Invalid user id" });
+  
+      if (req.userId !== id) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+  
+      await userModel.deleteUser(id);
+      res.json({ message: "User deleted" });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+  
 
 export async function displayUser(req, res) {
   try {
@@ -97,7 +105,7 @@ export async function displayUser(req, res) {
     const user = await userModel.displayUser(id);
 
     if (!user) {
-      return res.status(404).json({ error: "Tool not found" });
+      return res.status(404).json({ error: "User not found" });
     }
 
     res.json(user);

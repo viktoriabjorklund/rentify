@@ -2,21 +2,46 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useYourTools } from "../hooks/tools/useYourTools";
 import { useLocationSearch } from "../hooks/location";
-import confetti from 'canvas-confetti';
+import confetti from "canvas-confetti";
+import SuccessCheck from "@/components/SuccessCheck";
+import { Dialog, DialogButton, DialogButtonGroup } from "@/components/Dialog";
 
 export default function CreateAd() {
   const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const { user, createTool } = useYourTools();
 
   // Form state
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
-  const [location, setLocation] = useState("");
+  const [place, setPlace] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+
+  // Error modal state
+  const [errorModal, setErrorModal] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+  }>({
+    open: false,
+    title: "",
+    message: "",
+  });
+
+  // Input field error state
+  const [fieldErrors, setFieldErrors] = useState<{
+    title: boolean;
+    price: boolean;
+    place: boolean;
+  }>({
+    title: false,
+    price: false,
+    place: false,
+  });
 
   // Location autocomplete using ViewModel hook
   const {
@@ -45,8 +70,9 @@ export default function CreateAd() {
   };
 
   // Handle place input change
-  const handleLocationChange = (value: string) => {
-    setLocation(value);
+  const handlePlaceChange = (value: string) => {
+    setPlace(value);
+    setFieldErrors((prev) => ({ ...prev, place: false }));
     searchLocations(value); // Debouncing handled by hook
   };
 
@@ -54,78 +80,123 @@ export default function CreateAd() {
   const handleLocationSelect = (location: any) => {
     selectLocation(location);
     // Format as "City, Kommun" or just "City"
-    const locationString = location.kommun 
-      ? `${location.city}, ${location.kommun}` 
+    const locationString = location.kommun
+      ? `${location.city}, ${location.kommun}`
       : location.city;
-    setLocation(locationString);
+    setPlace(locationString);
+    setFieldErrors((prev) => ({ ...prev, place: false }));
   };
 
   // Check existing location
-   function existingLocation(maybeLocation: string){
-    if (locationSuggestions.length == 1 && locationSuggestions[0].kommun != undefined && maybeLocation.split(", ").length==2){
-      if (maybeLocation.split(", ")[0] == locationSuggestions[0].city && locationSuggestions[0].kommun ==maybeLocation.split(", ")[1]) 
-        return true
+  function existingLocation(maybeLocation: string) {
+    if (
+      locationSuggestions.length == 1 &&
+      locationSuggestions[0].kommun != undefined &&
+      maybeLocation.split(", ").length == 2
+    ) {
+      if (
+        maybeLocation.split(", ")[0] == locationSuggestions[0].city &&
+        locationSuggestions[0].kommun == maybeLocation.split(", ")[1]
+      )
+        return true;
     }
-    if(locationSuggestions.length == 1 && locationSuggestions[0].kommun == undefined){
-      if (maybeLocation == locationSuggestions[0].city) 
-        return true
+    if (
+      locationSuggestions.length == 1 &&
+      locationSuggestions[0].kommun == undefined
+    ) {
+      if (maybeLocation == locationSuggestions[0].city) return true;
     }
-    return false
+    return false;
+  }
+
+  // Helper to build input classes with error state
+  const inputClass = (hasError: boolean, extra: string = "") =>
+    `rounded-lg px-2 py-1 ${extra} border ${
+      hasError ? "border-red-500 ring-1 ring-red-400" : "border-black"
+    }`;
+
+  // Helper to open error modal and set field error
+  function showError(
+    field: "title" | "price" | "place",
+    title: string,
+    message: string
+  ) {
+    setFieldErrors((prev) => ({ ...prev, [field]: true }));
+    setErrorModal({ open: true, title, message });
   }
 
   // Handle submit - uses ViewModel hook
   const handleAddItem = async () => {
     if (!user) {
-      return alert("You must be logged in");
+      return showError(
+        "title",
+        "Not logged in",
+        "You must be logged in to create an ad."
+      );
     }
 
+    // Explicit field validations with specific messages
     if (!title) {
-      return alert("Please enter a title");
+      return showError("title", "Missing title", "Please enter a title.");
     }
+
     if (!price) {
-      return alert("Please enter a price");
+      return showError("price", "Missing price", "Please enter a price.");
     }
-    if (!location) {
-      return alert("Please enter a location");
+
+    if (!place) {
+      return showError("place", "Missing location", "Please enter a location.");
     }
-    if (!existingLocation(location)) {
-      return alert("Please enter a valid location");
+
+    if (!existingLocation(place)) {
+      return showError(
+        "place",
+        "Invalid location",
+        "Please enter a valid location."
+      );
     }
-    
 
     try {
       setSubmitting(true);
-      
+
       // Use service layer to create tool
       await createTool({
         name: title,
         description: description,
         price: Number(price),
-        location: location,
+        location: place,
         category: category,
         photo: selectedFile || undefined,
       });
 
       // Stop loading first
       setSubmitting(false);
-      
+
+      // Show success overlay immediately
+      setShowSuccess(true);
+
       // Small delay before confetti
       setTimeout(() => {
         // Trigger confetti animation
         confetti({
           particleCount: 100,
           spread: 70,
-          origin: { y: 0.6 }
+          origin: { y: 0.6 },
         });
       }, 100);
-      
+
       // Wait a bit so user can see the confetti before redirect
       setTimeout(() => {
-        router.push('/yourtools');
+        router.push("/yourtools");
       }, 1600);
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : "Failed to create ad");
+      setErrorModal({
+        open: true,
+        title: "Failed to create ad",
+        message:
+          err instanceof Error ? err.message : "An unexpected error occurred.",
+      });
       setSubmitting(false);
     }
   };
@@ -166,10 +237,15 @@ export default function CreateAd() {
                 <p>Title:</p>
                 <input
                   type="text"
-                  className="border border-black rounded-lg px-2 py-1"
+                  className={inputClass(fieldErrors.title)}
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (fieldErrors.title)
+                      setFieldErrors((p) => ({ ...p, title: false }));
+                  }}
                   onFocus={hideExistingSuggestions}
+                  aria-invalid={fieldErrors.title}
                 />
               </div>
 
@@ -188,20 +264,37 @@ export default function CreateAd() {
                   <option value="other">Other</option>
                 </select>
 
-                <p>Location:</p>
+                <p>Place:</p>
                 <div className="relative w-full">
                   <input
                     type="text"
-                    className="border border-black rounded-lg px-2 py-1 w-full"
-                    value={location}
-                    onChange={(e) => handleLocationChange(e.target.value)}
+                    className={inputClass(fieldErrors.place, "w-full")}
+                    value={place}
+                    onChange={(e) => handlePlaceChange(e.target.value)}
                     onFocus={showExistingSuggestions}
+                    aria-invalid={fieldErrors.place}
                   />
                   {loadingLocations && (
                     <div className="absolute right-2 top-2 text-gray-400">
-                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                     </div>
                   )}
@@ -213,9 +306,13 @@ export default function CreateAd() {
                           className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
                           onClick={() => handleLocationSelect(location)}
                         >
-                          <div className="text-sm font-medium">{location.city}</div>
+                          <div className="text-sm font-medium">
+                            {location.city}
+                          </div>
                           {location.kommun && (
-                            <div className="text-xs text-gray-500">{location.kommun}</div>
+                            <div className="text-xs text-gray-500">
+                              {location.kommun}
+                            </div>
                           )}
                         </div>
                       ))}
@@ -228,10 +325,15 @@ export default function CreateAd() {
                 <p>Price:</p>
                 <input
                   type="text"
-                  className="border border-black rounded-lg px-2 py-1"
+                  className={inputClass(fieldErrors.price)}
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)
-                  }onFocus={hideExistingSuggestions}
+                  onChange={(e) => {
+                    setPrice(e.target.value);
+                    if (fieldErrors.price)
+                      setFieldErrors((p) => ({ ...p, price: false }));
+                  }}
+                  onFocus={hideExistingSuggestions}
+                  aria-invalid={fieldErrors.price}
                 />
                 <p>SEK per day</p>
               </div>
@@ -258,17 +360,55 @@ export default function CreateAd() {
               disabled={submitting}
             >
               {submitting ? (
-                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
               ) : (
-                '+'
+                "+"
               )}
             </button>
           </div>
         </div>
       </div>
+
+      {showSuccess && (
+        <SuccessCheck
+          message="Ad created!"
+          onClose={() => setShowSuccess(false)}
+        />
+      )}
+
+      <Dialog
+        isOpen={errorModal.open}
+        onClose={() => setErrorModal({ ...errorModal, open: false })}
+        title={errorModal.title}
+      >
+        <p className="text-gray-700">{errorModal.message}</p>
+        <DialogButtonGroup>
+          <DialogButton
+            onClick={() => setErrorModal({ ...errorModal, open: false })}
+          >
+            Close
+          </DialogButton>
+        </DialogButtonGroup>
+      </Dialog>
     </div>
   );
 }
