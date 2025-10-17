@@ -25,7 +25,6 @@ export async function updateUser(id, name, surname, password) {
   return prisma.user.update({
     where: { id: parseInt(id) },
     data: { name, surname, password },
-    include: { user: true },
   });
 }
 
