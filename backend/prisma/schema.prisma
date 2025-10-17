@@ -28,7 +28,7 @@ model Tool {
   category    String?
   photoURL    String?
   userId      Int        
-  user        User       @relation(fields: [userId], references: [id])
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   requests    Request[]  @relation("ToolToRequest")
   bookings    Booking[]  @relation("ToolAsBookingTool")
 }
@@ -44,8 +44,8 @@ model Request {
   price     Int?
   viewed    Boolean  @default(false)
   booking   Booking?
-  renter    User     @relation("UserAsRenter", fields: [renterId], references: [id])
-  tool      Tool     @relation("ToolToRequest", fields: [toolId], references: [id])
+  renter    User     @relation("UserAsRenter", fields: [renterId], references: [id], onDelete: Cascade)
+  tool      Tool     @relation("ToolToRequest", fields: [toolId], references: [id], onDelete: Cascade)
 }
 
 model Booking {
@@ -57,7 +57,7 @@ model Booking {
   endDate   DateTime
   price     Int
   createdAt DateTime @default(now())
-  renter    User     @relation("UserAsBookingRenter", fields: [renterId], references: [id])
-  request   Request  @relation(fields: [requestId], references: [id])
-  tool      Tool     @relation("ToolAsBookingTool", fields: [toolId], references: [id])
+  renter    User     @relation("UserAsBookingRenter", fields: [renterId], references: [id], onDelete: Cascade)
+  request   Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  tool      Tool     @relation("ToolAsBookingTool", fields: [toolId], references: [id], onDelete: Cascade)
 }

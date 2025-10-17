@@ -1,14 +1,16 @@
 // pages/profile.tsx
 import React from "react";
 import { useRouter } from "next/router";
-import { useAuth } from "../hooks/auth"; // same import style you used in yourtools
+import { useAuth } from "../hooks/auth";
 import { getUserTools } from "../services/toolService";
+import { deleteUser as apiDeleteUser } from "../services/userService";
 
 export default function Profile() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [toolsCount, setToolsCount] = React.useState<number | null>(null);
   const [toolsErr, setToolsErr] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState(false);
 
   // Redirect to login if not authenticated
   React.useEffect(() => {
@@ -17,11 +19,12 @@ export default function Profile() {
     }
   }, [isAuthenticated, isLoading, router]);
 
+  // Load count of user's tools
   React.useEffect(() => {
     if (!isLoading && isAuthenticated) {
       getUserTools()
-        .then(list => setToolsCount(list.length))
-        .catch(err => {
+        .then((list) => setToolsCount(list.length))
+        .catch((err) => {
           console.error(err);
           setToolsErr("Failed to load your tools");
           setToolsCount(0);
@@ -45,8 +48,22 @@ export default function Profile() {
     );
   }
 
-  const fullName =
-    [user.name, user.surname].filter(Boolean).join(" ").trim() || "—";
+  const fullName = [user.name, user.surname].filter(Boolean).join(" ").trim() || "—";
+
+  const onDelete = async () => {
+    if (!user) return;
+    if (!confirm("Delete your account? This cannot be undone.")) return;
+
+    try {
+      setBusy(true);
+      await apiDeleteUser(user.id); // calls backend and clears local storage (per your service)
+      router.replace("/login");
+    } catch (e: any) {
+      alert(e?.message || "Failed to delete account");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="flex h-screen items-center justify-center text-black">
@@ -69,22 +86,17 @@ export default function Profile() {
             <span className="font-semibold">Number of tools:</span>
             <span>{toolsCount ?? "…"}</span>
           </div>
-
+          {toolsErr && <p className="text-sm text-red-600">{toolsErr}</p>}
         </div>
 
         <button
-          className="border rounded-lg w-48 h-12 bg-red-500 text-white mt-8"
-          onClick={() =>
-            alert(
-              "Are you sure you want to delete your account? This action cannot be undone."
-            )
-          }
+          className="border rounded-lg w-48 h-12 bg-red-500 text-white mt-8 disabled:opacity-60 hover:bg-red-600 cursor-pointer"
+          onClick={onDelete}
+          disabled={busy}
         >
-          Delete account
+          {busy ? "Deleting…" : "Delete account"}
         </button>
       </div>
     </div>
   );
 }
-
-  //profilsida: mejl, username, location, id, name, surname saker som står i user objectet, knapp att kunna ta bort användare

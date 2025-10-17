@@ -59,7 +59,11 @@ export default function EditAd() {
         setPrice(t.price != null ? String(t.price) : "");
         setDescription(t.description || "");
         if (t.photoURL) {
-          setPreview(`${API_BASE}${t.photoURL.startsWith("/") ? "" : "/"}${t.photoURL}`);
+          const absolute =
+            t.photoURL.startsWith("http")
+              ? t.photoURL
+              : `${API_BASE}${t.photoURL.startsWith("/") ? "" : "/"}${t.photoURL}`;
+          setPreview(absolute);
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load tool");
