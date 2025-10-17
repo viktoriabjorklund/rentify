@@ -9,6 +9,7 @@ type ToolListProps = {
   showUser?: boolean;
   showDescription?: boolean;
   className?: string;
+  useDynamicRoute?: boolean; // true for /{id}, false for /detailview?id={id}
 };
 
 type ToolCardProps = {
@@ -64,14 +65,19 @@ export default function ToolList({
   tools, 
   showUser = false, 
   showDescription = false, 
-  className = "" 
+  className = "",
+  useDynamicRoute = false
 }: ToolListProps) {
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
 
   const handleNavigate = (id: number) => {
     setLoading(true);
-    router.push(`/${id}`);
+    if (useDynamicRoute) {
+      router.push(`/${id}`);
+    } else {
+      router.push(`/detailview?id=${id}`);
+    }
   };
 
   if (loading) {
@@ -97,12 +103,6 @@ export default function ToolList({
       aria-label="Tools"
     >
       {tools.map((tool) => (
-        <Link
-        key={tool.id}
-        href={{ pathname: "/detailview", query: { id: tool.id } }}
-        className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 hover:shadow-md transition"
-        aria-label={`Open ${tool.name}`}
-      >
         <ToolCard 
           key={tool.id} 
           tool={tool} 
@@ -110,7 +110,6 @@ export default function ToolList({
           showDescription={showDescription}
           onNavigate={handleNavigate}
         />
-        </Link>
       ))}
     </section>
   );

@@ -179,7 +179,7 @@ export default function SearchPage() {
           </p>
         </div>
       ) : (
-        <ToolList tools={tools} />
+        <ToolList tools={tools} useDynamicRoute={true} />
       )}
     </main>
   );
