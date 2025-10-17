@@ -130,6 +130,11 @@ export async function updateTool(req, res) {
       ...(photoURL !== undefined ? { photoURL } : {}),
     };
 
+    if (req.file && req.file.buffer) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      data.photoURL = result.secure_url; 
+    }
+
     const updated = await toolModel.updateTool(toolId, data);
     res.json(updated);
   } catch (err) {

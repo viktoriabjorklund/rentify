@@ -9,26 +9,23 @@ export type User = {
 
 
 export async function deleteUser(id: number): Promise<void> {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
+  const token = localStorage.getItem('token');
+  if (!token) throw new Error('No authentication token found');
 
-    const response = await fetch(`${API_BASE_URL}/api/users/`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+  const res = await fetch(`${API_BASE_URL}/api/users/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-    if (!response.ok) {
-      throw new Error(`Failed to delete tool: ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error('Error deleting tool:', error);
-    throw error;
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Failed to delete user (status ${res.status})`);
   }
+
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
 }
 
 export async function displayUser(id: number): Promise<User> {

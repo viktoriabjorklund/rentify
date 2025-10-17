@@ -1,8 +1,9 @@
 import React from "react";
-import Image from "next/image";
-import { useRouter } from "next/router";
-import { Tool } from "../services/toolService";
 import Link from "next/link";
+import { Tool } from "../services/toolService";
+import { useAuth } from "../hooks/auth"; 
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 type ToolListProps = {
   tools: Tool[];
@@ -15,35 +16,26 @@ type ToolCardProps = {
   tool: Tool;
   showUser?: boolean;
   showDescription?: boolean;
-  onNavigate: (id: number) => void;
 };
 
-function ToolCard({ 
-  tool, 
-  showUser = false, 
-  showDescription = false,
-  onNavigate
-}: ToolCardProps) {
+function ToolCard({ tool, showUser = false, showDescription = false }: ToolCardProps) {
+  const imgSrc = tool.photoURL
+    ? (tool.photoURL.startsWith("http")
+        ? tool.photoURL
+        : `${API_BASE}${tool.photoURL.startsWith("/") ? "" : "/"}${tool.photoURL}`)
+    : null;
+
   return (
-    <article
-      onClick={() => onNavigate(tool.id)}
-      className="transition hover:opacity-80 cursor-pointer"
-    >
-      <div className="aspect-[16/10] w-full bg-gray-200 rounded-2xl overflow-hidden relative">
-        {tool.photoURL ? (
-          <Image
-            src={tool.photoURL}
-            alt={tool.name}
-            fill
-            className="object-cover"
-          />
+    <article className="transition hover:opacity-80 cursor-pointer rounded-2xl overflow-hidden">
+      <div className="aspect-[16/10] w-full bg-gray-200">
+        {imgSrc ? (
+          <img src={imgSrc} alt={tool.name} className="object-cover w-full h-full" />
         ) : (
           <div className="h-full w-full flex items-center justify-center">
             <span className="text-gray-400 text-sm">No image</span>
           </div>
         )}
       </div>
-
       <div className="pt-2 px-2">
         <h3 className="text-lg font-bold text-emerald-900 mb-2">{tool.name}</h3>
         <p className="text-gray-800 mb-2">
@@ -60,28 +52,13 @@ function ToolCard({
   );
 }
 
-export default function ToolList({ 
-  tools, 
-  showUser = false, 
-  showDescription = false, 
-  className = "" 
+export default function ToolList({
+  tools,
+  showUser = false,
+  showDescription = false,
+  className = "",
 }: ToolListProps) {
-  const router = useRouter();
-  const [loading, setLoading] = React.useState(false);
-
-  const handleNavigate = (id: number) => {
-    setLoading(true);
-    router.push(`/${id}`);
-  };
-
-  if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-        <p className="text-gray-600 mt-2">Loading tool...</p>
-      </div>
-    );
-  }
+  const { user } = useAuth(); 
 
   if (tools.length === 0) {
     return (
@@ -92,26 +69,31 @@ export default function ToolList({
   }
 
   return (
-    <section 
+    <section
       className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 ${className}`}
       aria-label="Tools"
     >
-      {tools.map((tool) => (
-        <Link
-        key={tool.id}
-        href={{ pathname: "/detailview", query: { id: tool.id } }}
-        className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 hover:shadow-md transition"
-        aria-label={`Open ${tool.name}`}
-      >
-        <ToolCard 
-          key={tool.id} 
-          tool={tool} 
-          showUser={showUser}
-          showDescription={showDescription}
-          onNavigate={handleNavigate}
-        />
-        </Link>
-      ))}
+      {tools.map((tool) => {
+        const ownerId = tool.user?.id ?? (tool as any).userId; 
+        const isOwner = !!user && ownerId === user.id;
+
+        const href = isOwner
+          ? { pathname: "/detailview", query: { id: tool.id } }
+          : `/${tool.id}`;
+
+        return (
+          <Link
+            key={tool.id}
+            href={href}
+            className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 hover:shadow-md transition"
+            aria-label={`Open ${tool.name}`}
+          >
+            <ToolCard tool={tool} showUser={showUser} showDescription={showDescription} />
+          </Link>
+        );
+      })}
     </section>
   );
 }
+
+

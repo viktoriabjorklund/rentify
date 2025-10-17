@@ -677,7 +677,7 @@ describe("Error handling: unauthorized delete & update attempt", () => {
 
     expect(res.statusCode).toBe(403);
     expect(res.body).toHaveProperty("error");
-    expect(res.body.error.toLowerCase()).toContain("not authorized");
+    expect(res.body.error.toLowerCase()).toContain("forbidden");
   });
 
   test("fails if user A tries to update user B", async () => {

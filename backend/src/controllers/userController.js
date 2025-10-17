@@ -82,23 +82,22 @@ export async function updateUser(req, res) {
   }
   
 
-export async function deleteUser(req, res) {
+  export async function deleteUser(req, res) {
     try {
-      const { id } = req.params;
-      const loggedInUserId = req.userId;
+      const id = parseInt(req.params.id, 10);
+      if (Number.isNaN(id)) return res.status(400).json({ error: "Invalid user id" });
   
-      if (parseInt(id) !== loggedInUserId) {
-        return res.status(403).json({ error: "Not authorized to delete this user" });
+      if (req.userId !== id) {
+        return res.status(403).json({ error: "Forbidden" });
       }
   
       await userModel.deleteUser(id);
-      res.status(200).json({ message: "User deleted" });
+      res.json({ message: "User deleted" });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
   }
   
-
 
 export async function displayUser(req, res) {
   try {
