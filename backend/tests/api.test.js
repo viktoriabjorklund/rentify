@@ -1,6 +1,6 @@
 import request from "supertest";
 import { PrismaClient } from "@prisma/client";
-import app from "../src/server.js"; // se till att du exporterar app i server.js
+import app from "../src/server.js";
 
 const prisma = new PrismaClient();
 
@@ -42,12 +42,70 @@ describe("User routes", () => {
     expect(res.body).toHaveProperty("token");
   });
 
-  test("logs in user B and returns JWT", async () => {
-    const res = await request(app)
+  test("logs in user B and fetches profile", async () => {
+    const loginRes = await request(app)
       .post("/api/users/login")
       .send({ username: "testB@test.com", password: "B123456" });
+  
+    expect(loginRes.statusCode).toBe(200);
+    expect(loginRes.body).toHaveProperty("token");
+  
+    tokenB = loginRes.body.token;
+    idB = loginRes.body.user.id;
+  
+    const res = await request(app)
+      .get(`/api/users/${idB}`)
+      .set("Authorization", `Bearer ${tokenB}`);
+  
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty("token");
+    expect(res.body).toHaveProperty("username", "testB@test.com");
+  });
+  
+
+  test("displays userB profile using stored id and token", async () => {
+    const res = await request(app)
+      .get(`/api/users/${idB}`)
+      .set("Authorization", `Bearer ${tokenB}`);
+  
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("username", "testB@test.com");
+  });
+  
+});
+// --------------------------------------------------------------
+
+describe("X registers and deletes its account", () => {
+  let tokenX;
+  let idX;
+
+  beforeAll(async () => {
+    await request(app)
+      .post("/api/users/register")
+      .send({ username: "userX@test.com", password: "X123456" });
+
+    const loginRes = await request(app)
+      .post("/api/users/login")
+      .send({ username: "userX@test.com", password: "X123456" });
+
+    expect(loginRes.statusCode).toBe(200);
+
+    tokenX = loginRes.body.token;
+    idX = loginRes.body.user.id;
+  });
+
+  test("deletes userX successfully", async () => {
+    const res = await request(app)
+      .delete(`/api/users/${idX}`)
+      .set("Authorization", `Bearer ${tokenX}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("message", "User deleted");
+
+    const check = await request(app)
+      .get(`/api/users/${idX}`)
+      .set("Authorization", `Bearer ${tokenX}`);
+
+    expect(check.statusCode).toBe(404);
   });
 });
 
@@ -302,8 +360,6 @@ describe("B Logins and requests A's tools", () => {
     expect(stillExists).toBeNull();
   });
 
-
-
   test("B fetches sent requests", async () => {
     const res = await request(app)
       .get("/api/requests/sent")
@@ -354,7 +410,7 @@ describe("A Logins and accepts request 2, rejects request 3", () => {
   });
 
   test("A rejects request 3", async () => {
-    const requestToReject = global.receivedRequests[2]; // tredje requesten
+    const requestToReject = global.receivedRequests[2];
     const res = await request(app)
       .put(`/api/requests/${requestToReject.id}`)
       .set("Authorization", `Bearer ${tokenA}`)
@@ -389,13 +445,11 @@ describe("A deletes tool 1 and B’s requests update accordingly", () => {
   let tokenA, tokenB;
 
   beforeAll(async () => {
-    // logga in som A
     const loginA = await request(app)
       .post("/api/users/login")
       .send({ username: "testA@test.com", password: "A123456" });
     tokenA = loginA.body.token;
 
-    // logga in som B
     const loginB = await request(app)
       .post("/api/users/login")
       .send({ username: "testB@test.com", password: "B123456" });
@@ -406,17 +460,14 @@ describe("A deletes tool 1 and B’s requests update accordingly", () => {
   });
 
   test("A deletes their first tool", async () => {
-    // hämta tool 1
     const tool = await prisma.tool.findFirst({
       where: { name: "tool 1", user: { username: "testA@test.com" } },
     });
     expect(tool).toBeDefined();
 
-    // radera
     const res = await request(app)
       .delete(`/api/tools/${tool.id}`)
       .set("Authorization", `Bearer ${tokenA}`);
-      console.log("body", res.body)
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty("message", "Tool deleted");
@@ -533,7 +584,6 @@ describe("Error handling: invalid login attempts", () => {
     const res = await request(app)
       .post("/api/users/login")
       .send({ username: "testA@test.com", password: "wrongpassword" });
-      console.log("res", res.body)
 
     expect(res.statusCode).toBe(401);
     expect(res.body).toHaveProperty("message");
@@ -590,6 +640,62 @@ describe("Error handling: failed attempt to create account", () => {
   });
 
 });
+
+
+// --------------------------------------------------------------
+describe("Error handling: unauthorized delete & update attempt", () => {
+  let tokenA, tokenB, idB;
+
+  beforeAll(async () => {
+    // Skapa två användare (A och B)
+    await request(app)
+      .post("/api/users/register")
+      .send({ username: "unauthA@test.com", password: "A123456" })
+      .ok(() => true);
+
+    await request(app)
+      .post("/api/users/register")
+      .send({ username: "unauthB@test.com", password: "B123456" })
+      .ok(() => true);
+
+    const loginA = await request(app)
+      .post("/api/users/login")
+      .send({ username: "unauthA@test.com", password: "A123456" });
+    tokenA = loginA.body.token;
+
+    const loginB = await request(app)
+      .post("/api/users/login")
+      .send({ username: "unauthB@test.com", password: "B123456" });
+    tokenB = loginB.body.token;
+    idB = loginB.body.user.id;
+  });
+
+  test("fails if user A tries to delete user B", async () => {
+    const res = await request(app)
+      .delete(`/api/users/${idB}`)
+      .set("Authorization", `Bearer ${tokenA}`);
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body).toHaveProperty("error");
+    expect(res.body.error.toLowerCase()).toContain("not authorized");
+  });
+
+  test("fails if user A tries to update user B", async () => {
+    const res = await request(app)
+      .put(`/api/users/${idB}`)
+      .set("Authorization", `Bearer ${tokenA}`)
+      .send({
+        name: "Hacker",
+        surname: "McUpdate",
+        password: "newPass123"
+      });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body).toHaveProperty("error");
+    expect(res.body.error.toLowerCase()).toContain("not authorized");
+  });
+});
+
 // --------------------------------------------------------------
 
 describe("Error handling: creating tools incorrectly", () => {
@@ -918,10 +1024,6 @@ describe("Error handling: creating requests incorrectly", () => {
     expect(res.body).toHaveProperty("error");
   });
 });
-
-
-
-
 
 afterAll(async () => {
   await prisma.booking.deleteMany();
