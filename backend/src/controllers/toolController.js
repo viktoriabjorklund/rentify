@@ -131,8 +131,8 @@ export async function updateTool(req, res) {
     };
 
     if (req.file && req.file.buffer) {
-      const result = await uploadToCloudinary(req.file.buffer); // same helper as createTool
-      data.photoURL = result.secure_url; // ✅ save Cloudinary URL
+      const result = await uploadToCloudinary(req.file.buffer);
+      data.photoURL = result.secure_url; 
     }
 
     const updated = await toolModel.updateTool(toolId, data);

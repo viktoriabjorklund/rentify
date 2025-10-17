@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Tool } from "../services/toolService";
-import { useAuth } from "../hooks/auth"; // <- you already use this elsewhere
+import { useAuth } from "../hooks/auth"; 
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -58,7 +58,7 @@ export default function ToolList({
   showDescription = false,
   className = "",
 }: ToolListProps) {
-  const { user } = useAuth(); // current logged-in user (or undefined if not logged in)
+  const { user } = useAuth(); 
 
   if (tools.length === 0) {
     return (
@@ -74,11 +74,9 @@ export default function ToolList({
       aria-label="Tools"
     >
       {tools.map((tool) => {
-        const ownerId = tool.user?.id ?? (tool as any).userId; // fallback if user object not included
+        const ownerId = tool.user?.id ?? (tool as any).userId; 
         const isOwner = !!user && ownerId === user.id;
 
-        // If it's the user's own tool -> /detailview?id=ID
-        // Else -> "/ID" (your public/other-user view)
         const href = isOwner
           ? { pathname: "/detailview", query: { id: tool.id } }
           : `/${tool.id}`;

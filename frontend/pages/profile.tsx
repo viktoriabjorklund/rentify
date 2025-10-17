@@ -19,7 +19,7 @@ export default function Profile() {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  // Load count of user's tools
+
   React.useEffect(() => {
     if (!isLoading && isAuthenticated) {
       getUserTools()
@@ -56,7 +56,7 @@ export default function Profile() {
 
     try {
       setBusy(true);
-      await apiDeleteUser(user.id); // calls backend and clears local storage (per your service)
+      await apiDeleteUser(user.id);
       router.replace("/login");
     } catch (e: any) {
       alert(e?.message || "Failed to delete account");
