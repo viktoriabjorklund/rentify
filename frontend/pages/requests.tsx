@@ -13,6 +13,7 @@ import {
   deleteRequest,
 } from "../services/requestService";
 import { triggerNotificationRefresh } from "../hooks/useNotifications";
+import StatusToast from "@/components/StatusToast";
 
 type RequestStatus = "new" | "accepted" | "rejected" | "pending";
 type SubCategory = "pending" | "accepted" | "rejected";
@@ -117,6 +118,11 @@ export default function RequestsPage() {
     email?: string;
   } | null>(null);
 
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
   // Set initial tab from URL query parameter
   useEffect(() => {
     if (router.query.tab === "sent") {
@@ -173,8 +179,8 @@ export default function RequestsPage() {
               : req
           ) ?? []
       );
-      // Trigger navbar notification refresh
       triggerNotificationRefresh();
+      setToast({ type: "success", message: "Accepted request" });
     } catch (err) {
       console.error("Failed to accept request:", err);
       setError("Failed to accept request. Please try again.");
@@ -196,8 +202,8 @@ export default function RequestsPage() {
               : req
           ) ?? []
       );
-      // Trigger navbar notification refresh
       triggerNotificationRefresh();
+      setToast({ type: "error", message: "Rejected request" });
     } catch (err) {
       console.error("Failed to reject request:", err);
       setError("Failed to reject request. Please try again.");
@@ -211,10 +217,10 @@ export default function RequestsPage() {
 
     try {
       await deleteRequest(Number(requestId));
-      
+
       // Remove from sent requests only
       setSentData((prev) => prev?.filter((req) => req.id !== requestId) ?? []);
-      
+
       // Clear selection if deleted item was selected
       if (selectedId === requestId) {
         setSelectedId(null);
@@ -421,6 +427,21 @@ export default function RequestsPage() {
     [receivedData, sentData]
   );
 
+  // Early loading screen (like searchpage)
+  if (loading || (!receivedData && !sentData)) {
+    return (
+      <main
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: "#F4F6F5" }}
+      >
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+          <p className="text-gray-600 mt-2">Loading requests...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main
       className="relative min-h-screen"
@@ -429,6 +450,15 @@ export default function RequestsPage() {
       <Head>
         <title>Requests • Rentify</title>
       </Head>
+
+      {toast && (
+        <StatusToast
+          type={toast.type}
+          message={toast.message}
+          onDone={() => setToast(null)}
+          durationMs={1300}
+        />
+      )}
 
       <section className="mx-auto max-w-7xl px-6 pt-20 md:pt-24 pb-16 titillium-web-regular">
         <div className="grid grid-cols-1 lg:grid-cols-[400px_minmax(0,1fr)]">
