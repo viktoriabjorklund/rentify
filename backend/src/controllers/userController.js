@@ -77,7 +77,6 @@ export async function updateUser(req, res) {
 
 export async function deleteUser(req, res) {
   try {
-
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id)) return res.status(400).json({ error: "Invalid user id" });
 
