@@ -8,6 +8,15 @@ const prisma = new PrismaClient();
 export async function register(req, res) {
     const { username, password, name, surname } = req.body;
     if (!username || !password) return res.status(400).json({ error: "Missing fields" });
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(username)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    if (password.length < 5) {
+        return res.status(400).json({ error: "Password must be at least 5 characters long" });
+      }
   
     try {
       const existing = await userModel.getUserByUsername(username);
@@ -32,7 +41,7 @@ export async function login(req, res) {
             }
         })
 
-        if (!user) { return res.status(404).send({ message: "User not found" }) }
+        if (!user) { return res.status(401).send({ message: "User not found" }) }
 
         
         const passwordIsValid = bcrypt.compareSync(password, user.password)
@@ -55,3 +64,39 @@ export async function login(req, res) {
     }
 }
 
+export async function updateUser(req, res) {
+  try {
+    const { name, surname, password } = req.body;
+    const { id } = req.params;
+    const updated = await userModel.updateUser(id, name, surname, password);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export async function deleteUser(req, res) {
+  try {
+    const { id } = req.params;
+    await userModel.deleteUser(id);
+    res.json({ message: "User deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+
+export async function displayUser(req, res) {
+  try {
+    const { id } = req.params;
+    const user = await userModel.displayUser(id);
+
+    if (!user) {
+      return res.status(404).json({ error: "Tool not found" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

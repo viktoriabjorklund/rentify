@@ -13,6 +13,7 @@ export async function getAllSentRequests(userId) {
           name: true,
           location: true,
           price: true,
+          photoURL: true,
           user: {
             select: {
               id: true,
@@ -45,6 +46,7 @@ export async function getAllRecievedRequests(userId) {
           description: true,
           location: true,
           price: true,
+          photoURL: true,
         },
       },
       renter: {
@@ -111,6 +113,7 @@ export async function getRequestById(id) {
       price: true,
       renter: {
         select: {
+            id: true,
           username: true,
           name: true,
           surname: true,

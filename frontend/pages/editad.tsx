@@ -1,14 +1,7 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-
-type Tool = {
-  id: number;
-  name: string;
-  description: string;
-  price: number | null;
-  location: string | null;
-  photoURL?: string | null;
-};
+import { displayTool, updateTool, Tool } from "../services/toolService";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -22,6 +15,16 @@ const normalizePlace = (loc?: string | null) => {
   return "other";
 };
 
+const normalizeCategory = (loc?: string | null) => {
+  const v = (loc || "").toLowerCase();
+  if (v === "electronics") return "electronics";
+  if (v === "furniture") return "furniture";
+  if (v === "tools" || v === "tools") return "tools";
+  if (v === "") return "";
+  return "other";
+};
+
+
 export default function EditAd() {
   const router = useRouter();
   const id = Number(router.query.id);
@@ -29,6 +32,7 @@ export default function EditAd() {
   const [tool, setTool] = useState<Tool | null>(null);
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
+  const [category, setCategory] = useState("");
   const [price, setPrice] = useState<string>("");
   const [description, setDescription] = useState("");
 
@@ -39,28 +43,19 @@ export default function EditAd() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Load tool by id
+  // Load tool by id - uses service layer
   useEffect(() => {
     if (!Number.isFinite(id)) return;
     (async () => {
       try {
         setLoading(true);
         setError(null);
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        if (!token) {
-          throw new Error("You must be logged in to edit an ad.");
-        }
-        const res = await fetch(`${API_BASE}/api/tools/${id}`, {
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || `Failed to load tool (status ${res.status})`);
-        }
-        const t: Tool = await res.json();
+        
+        const t = await displayTool(id);
         setTool(t);
         setTitle(t.name || "");
-        setPlace(normalizePlace(t.location)); // <-- set from existing value
+        setPlace(normalizePlace(t.location));
+        setCategory(normalizeCategory(t.category));
         setPrice(t.price != null ? String(t.price) : "");
         setDescription(t.description || "");
         if (t.photoURL) {
@@ -84,37 +79,22 @@ export default function EditAd() {
     reader.readAsDataURL(file);
   };
 
-  // Save (PUT multipart)
+  // Save - uses service layer
   const onSave = async () => {
     if (!Number.isFinite(id)) return;
     try {
       setSaving(true);
       setError(null);
 
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("You must be logged in to edit an ad.");
-
-      const form = new FormData();
-      form.append("name", title);
-      form.append("description", description);
-      form.append("price", price);      // '' is fine
-      form.append("location", place);   // <-- send the select value
-      if (selectedFile) form.append("photo", selectedFile); // field must be "photo"
-
-      const url = `${API_BASE}/api/tools/${id}`;
-      console.log("Sending PUT to:", url);
-
-      const res = await fetch(url, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` }, // do NOT set Content-Type
-        body: form,
+      // Use service layer to update tool
+      await updateTool(id, {
+        name: title,
+        description: description,
+        price: price ? Number(price) : undefined,
+        location: place,
+        category: category,
+        photo: selectedFile || undefined,
       });
-
-      const bodyText = await res.text();
-      console.log("PUT status:", res.status);
-      console.log("PUT response body:", bodyText);
-
-      if (!res.ok) throw new Error(bodyText || `Failed: ${res.status}`);
 
       router.push(`/detailview?id=${id}`);
     } catch (e: any) {
@@ -137,8 +117,8 @@ export default function EditAd() {
       <div className="flex flex-col items-center justify-center w-3/4 gap-8">
         <p className="text-4xl text-[#3A7858]">Edit “{tool.name}”</p>
 
-        <div className="flex flex-col gap-12 bg-white p-8 rounded-lg w-full">
-          <div className="flex gap-8">
+        <div className="flex flex-col gap-12 bg-white p-8 rounded-lg w-full border border-[#174B33]">
+          <div className="flex gap-8 mt-16">
             {/* Image */}
             <div className="basis-1/2 items-center justify-center flex">
               <label className="cursor-pointer">
@@ -158,7 +138,7 @@ export default function EditAd() {
             </div>
 
             {/* Form */}
-            <div className="basis-1/2 flex flex-col gap-4 p-4">
+            <div className="basis-1/2 flex flex-col gap-4">
               <div className="flex gap-2">
                 <p>Title:</p>
                 <input
@@ -176,10 +156,23 @@ export default function EditAd() {
                   value={place}
                   onChange={(e) => setPlace(e.target.value)}
                 >
-                  <option value=""></option>
                   <option value="stockholm">Stockholm</option>
                   <option value="gothenburg">Gothenburg</option>
                   <option value="malmo">Malmö</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2">
+                <p>Category:</p>
+                <select
+                  className="border border-black rounded-lg px-2 py-1 w-full"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option value="electronics">Electronics</option>
+                  <option value="furniture">Furniture</option>
+                  <option value="tools">Tools</option>
                   <option value="other">Other</option>
                 </select>
               </div>
@@ -194,6 +187,8 @@ export default function EditAd() {
                 />
                 <p>SEK per day</p>
               </div>
+
+
 
               <div className="flex flex-col gap-2">
                 <p>Description:</p>

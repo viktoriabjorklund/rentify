@@ -29,13 +29,6 @@ export type BackendRequest = {
   viewed?: boolean;
 };
 
-export type Request = {
-  requestId: number;
-  startDate: Date;
-  endDate: Date;
-  toolId: number;
-};
-
 export type RequestData = {
   startDate: Date;
   endDate: Date;
@@ -45,7 +38,7 @@ export type RequestData = {
   accepted: Boolean;
 };
 
-export async function createRequest(data: RequestData): Promise<Request> {
+export async function createRequest(data: RequestData): Promise<BackendRequest> {
   try {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -97,7 +90,6 @@ export async function getSentRequests(): Promise<BackendRequest[]> {
 }
 
 export async function getReceivedRequests(): Promise<BackendRequest[]> {
-  // Backend stavar "recieved"
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...authHeaders(),
@@ -108,7 +100,7 @@ export async function getReceivedRequests(): Promise<BackendRequest[]> {
   });
   if (!res.ok) {
     throw new Error(
-      `Failed to fetch received requests: ${res.status} ${res.statusText}`
+      `Failed to fetch recieved requests: ${res.status} ${res.statusText}`
     );
   }
   return res.json();
@@ -159,4 +151,22 @@ export async function updateRequestStatus(
     );
   }
   return res.json();
+}
+
+export async function deleteRequest(requestId: number): Promise<void> {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...authHeaders(),
+  };
+  const res = await fetch(`${API_BASE_URL}/api/requests/${requestId}`, {
+    method: "DELETE",
+    headers,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(
+      err.error ||
+        `Failed to delete request ${requestId}: ${res.status} ${res.statusText}`
+    );
+  }
 }

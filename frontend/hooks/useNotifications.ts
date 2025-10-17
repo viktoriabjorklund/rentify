@@ -1,5 +1,3 @@
-//denna borde fungera sen för att visa notifikationer i bla. navbar
-
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "./auth";
 
@@ -17,14 +15,12 @@ export function useNotifications() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      // Fetch received requests (people wanting to rent YOUR tools)
       const recRes = await fetch(`${API_BASE_URL}/api/requests/received`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Fetch sent requests (you asked to rent someone else's tool)
       const sentRes = await fetch(`${API_BASE_URL}/api/requests/sent`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -34,14 +30,12 @@ export function useNotifications() {
       let total = 0;
       if (recRes.ok) {
         const received = await recRes.json();
-        // Unviewed new requests for owner: pending true and not viewed
         total += received.filter(
           (r: any) => r && r.pending === true && !r.viewed
         ).length;
       }
       if (sentRes.ok) {
         const sent = await sentRes.json();
-        // Unviewed outcomes for renter: explicitly accepted or rejected (pending === false) and not viewed
         total += sent.filter(
           (r: any) =>
             r &&
@@ -62,16 +56,14 @@ export function useNotifications() {
       return;
     }
 
+    // Kör direkt vid inloggning
     fetchNotificationCount();
 
-    // Listen for manual refresh events
-    const handleRefresh = () => {
-      fetchNotificationCount();
-    };
-
+    // Lyssna på globala refresh-events
+    const handleRefresh = () => fetchNotificationCount();
     notificationEvents.addEventListener("refresh", handleRefresh);
 
-    // poll for updates every 30 seconds
+    // Uppdatera automatiskt var 30:e sekund
     const interval = setInterval(fetchNotificationCount, 30000);
 
     return () => {
@@ -83,7 +75,7 @@ export function useNotifications() {
   return { count, refresh: fetchNotificationCount };
 }
 
-// Function to trigger notification refresh from anywhere in the app
+// Funktion för att trigga refresh var som helst i appen
 export function triggerNotificationRefresh() {
   notificationEvents.dispatchEvent(new Event("refresh"));
 }

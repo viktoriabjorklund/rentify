@@ -1,11 +1,14 @@
 import { useState } from "react";
 import SuccessCheck from "@/components/SuccessCheck";
+import { useRouter } from "next/router";
 import { useYourTools } from "../hooks/tools/useYourTools";
 
 export default function CreateAd() {
+  const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
-  const { user, createTool } = useYourTools();
+  const [submitting, setSubmitting] = useState(false);
+  const { user } = useYourTools();
 
   // Form state
   const [title, setTitle] = useState("");
@@ -24,9 +27,7 @@ export default function CreateAd() {
 
     // Show preview
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-    };
+    reader.onloadend = () => setPreview(reader.result as string);
     reader.readAsDataURL(file);
   };
 
@@ -36,31 +37,44 @@ export default function CreateAd() {
       return alert("You must be logged in");
     }
 
+    if (!title || !price || !place) {
+      return alert("Please fill out all required fields");
+    }
+
     try {
+      setSubmitting(true);
+
       const formData = new FormData();
       formData.append("name", title);
       formData.append("description", description);
       formData.append("price", price);
       formData.append("location", place);
       formData.append("category", category);
-      if (selectedFile) formData.append("photo", selectedFile); // 👈 must match upload.single('photo')
+      if (selectedFile) formData.append("photo", selectedFile);
 
       const token = localStorage.getItem("token");
 
-      const res = await fetch("http://localhost:8080/api/tools", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/tools`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        }
+      );
 
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || "Failed to create tool");
       }
 
+      // Stop loading
+      setSubmitting(false);
+
+      // Show success overlay
       setShowSuccess(true);
+
+      // Reset form
       setTitle("");
       setCategory("");
       setPlace("");
@@ -70,8 +84,15 @@ export default function CreateAd() {
       setPreview("");
     } catch (err) {
       console.error(err);
-      alert("Failed to create ad");
+      alert(err instanceof Error ? err.message : "Failed to create ad");
+      setSubmitting(false);
     }
+  };
+
+  // Redirect from success popup
+  const handleGoToMyTools = () => {
+    setShowSuccess(false);
+    router.push("/yourtools");
   };
 
   return (
@@ -79,7 +100,7 @@ export default function CreateAd() {
       <div className="flex flex-col items-center justify-center w-3/4 h-3/4 gap-8">
         <p className="text-4xl text-[#3A7858]">Create Ad</p>
 
-        <div className="flex flex-col gap-12 bg-white p-8 rounded-lg">
+        <div className="flex flex-col gap-12 bg-white p-8 rounded-lg shadow-lg">
           <div className="flex gap-8">
             {/* Image Upload */}
             <div className="basis-1/2 flex items-center justify-center">
@@ -110,7 +131,7 @@ export default function CreateAd() {
                 <p>Title:</p>
                 <input
                   type="text"
-                  className="border border-black rounded-lg px-2 py-1"
+                  className="border border-black rounded-lg px-2 py-1 w-full"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />
@@ -148,7 +169,7 @@ export default function CreateAd() {
                 <p>Price:</p>
                 <input
                   type="text"
-                  className="border border-black rounded-lg px-2 py-1"
+                  className="border border-black rounded-lg px-2 py-1 w-full"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
@@ -159,7 +180,7 @@ export default function CreateAd() {
                 <p>Description:</p>
                 <input
                   type="text"
-                  className="border border-black rounded-lg px-2 py-1"
+                  className="border border-black rounded-lg px-2 py-1 w-full"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
@@ -171,20 +192,47 @@ export default function CreateAd() {
           <div className="flex gap-4 justify-end items-center">
             <p className="text-2xl">Add Item</p>
             <button
-              className="w-8 h-8 bg-[#3A7858] text-white rounded-lg flex items-center justify-center cursor-pointer"
+              type="button"
+              className="w-8 h-8 bg-[#3A7858] text-white rounded-lg flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleAddItem}
+              disabled={submitting}
             >
-              +
+              {submitting ? (
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                "+"
+              )}
             </button>
           </div>
         </div>
       </div>
+
       {showSuccess && (
         <SuccessCheck
           message="Ad created!"
-          onClose={() => setShowSuccess(false)}
+          onClose={handleGoToMyTools}
         />
       )}
     </div>
   );
 }
+

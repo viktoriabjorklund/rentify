@@ -31,7 +31,7 @@ const allowedOrigins = [
   "http://localhost:3002",
   "http://localhost:3003",
   "http://localhost:3004",
-  "https://rentify-frontend-ge6g.onrender.com",
+  "https://rentify-psi-roan.vercel.app",
 ];
 
 app.use(
@@ -63,6 +63,9 @@ app.get("/", (req, res) => {
   res.send("Rentify backend is running!");
 });
 
-app.listen(PORT, () => {
-  console.log(`Server has started on: ${PORT}`);
-});
+if (process.env.NODE_ENV !== "test") {
+  const PORT = process.env.PORT || 8080;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+export default app;

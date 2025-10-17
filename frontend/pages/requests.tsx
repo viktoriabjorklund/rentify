@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import PrimaryButton from "@/components/PrimaryButton";
 import RequestTabs from "@/components/RequestTabs";
 import SubCategoryTabs from "@/components/SubCategoryTabs";
@@ -9,6 +10,7 @@ import {
   getSentRequests,
   markRequestAsViewed,
   updateRequestStatus,
+  deleteRequest,
 } from "../services/requestService";
 import { triggerNotificationRefresh } from "../hooks/useNotifications";
 
@@ -101,6 +103,7 @@ const Avatar = () => (
 );
 
 export default function RequestsPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<"received" | "sent">("received");
   const [subCategory, setSubCategory] = useState<SubCategory>("pending");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -113,6 +116,13 @@ export default function RequestsPage() {
     name: string;
     email?: string;
   } | null>(null);
+
+  // Set initial tab from URL query parameter
+  useEffect(() => {
+    if (router.query.tab === "sent") {
+      setTab("sent");
+    }
+  }, [router.query.tab]);
 
   const handleRequestClick = async (item: RequestItem) => {
     setSelectedId(item.id);
@@ -194,6 +204,27 @@ export default function RequestsPage() {
     }
   };
 
+  const handleDeleteRequest = async (requestId: string) => {
+    if (!confirm("Are you sure you want to delete this request?")) {
+      return;
+    }
+
+    try {
+      await deleteRequest(Number(requestId));
+      
+      // Remove from sent requests only
+      setSentData((prev) => prev?.filter((req) => req.id !== requestId) ?? []);
+      
+      // Clear selection if deleted item was selected
+      if (selectedId === requestId) {
+        setSelectedId(null);
+      }
+    } catch (err) {
+      console.error("Failed to delete request:", err);
+      setError("Failed to delete request. Please try again.");
+    }
+  };
+
   const handleContactOwner = (selected: RequestItem) => {
     setContactPerson({
       name: selected.detailName || selected.person.name,
@@ -233,7 +264,7 @@ export default function RequestsPage() {
       timeAgo: "",
       side: "sent",
       status: r.accepted ? "accepted" : r.pending ? "pending" : "rejected",
-      imageUrl: undefined,
+      imageUrl: r.tool?.photoURL || undefined,
       priceSek: r.price ?? r.tool?.price ?? undefined,
       dateFrom: r.startDate
         ? new Date(r.startDate)
@@ -272,7 +303,7 @@ export default function RequestsPage() {
       timeAgo: "",
       side: "received",
       status: r.pending ? "new" : r.accepted ? "accepted" : "rejected",
-      imageUrl: undefined,
+      imageUrl: r.tool?.photoURL || undefined,
       priceSek: r.price ?? r.tool?.price ?? undefined,
       dateFrom: r.startDate
         ? new Date(r.startDate)
@@ -556,37 +587,39 @@ export default function RequestsPage() {
                         {selected.priceSek} SEK
                       </span>
                     </p>
-                    <div className="mt-4 flex items-center justify-center gap-4">
-                      {selected.status === "accepted" ? (
-                        <PrimaryButton
-                          className="bg-[#318EFF] hover:bg-[#1F73E6]"
-                          onClick={() => handleContactRenter(selected)}
-                        >
-                          Contact renter
-                        </PrimaryButton>
-                      ) : selected.status === "rejected" ? (
-                        <PrimaryButton
-                          className="bg-[#318EFF] hover:bg-[#1F73E6]"
-                          onClick={() => handleContactRenter(selected)}
-                        >
-                          Contact renter
-                        </PrimaryButton>
-                      ) : (
-                        <>
+                    <div className="mt-4 flex flex-col items-center gap-3">
+                      <div className="flex items-center gap-4">
+                        {selected.status === "accepted" ? (
                           <PrimaryButton
-                            className="bg-red-500 hover:bg-red-600"
-                            onClick={() => handleReject(selected.id)}
+                            className="bg-[#318EFF] hover:bg-[#1F73E6]"
+                            onClick={() => handleContactRenter(selected)}
                           >
-                            Reject
+                            Contact renter
                           </PrimaryButton>
-                          <span className="text-emerald-900/70">or</span>
+                        ) : selected.status === "rejected" ? (
                           <PrimaryButton
-                            onClick={() => handleAccept(selected.id)}
+                            className="bg-[#318EFF] hover:bg-[#1F73E6]"
+                            onClick={() => handleContactRenter(selected)}
                           >
-                            Accept
+                            Contact renter
                           </PrimaryButton>
-                        </>
-                      )}
+                        ) : (
+                          <>
+                            <PrimaryButton
+                              className="bg-red-500 hover:bg-red-600"
+                              onClick={() => handleReject(selected.id)}
+                            >
+                              Reject
+                            </PrimaryButton>
+                            <span className="text-emerald-900/70">or</span>
+                            <PrimaryButton
+                              onClick={() => handleAccept(selected.id)}
+                            >
+                              Accept
+                            </PrimaryButton>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -643,17 +676,29 @@ export default function RequestsPage() {
                         {selected.priceSek} SEK
                       </span>
                     </p>
-                    {(selected.status === "accepted" ||
-                      selected.status === "rejected") && (
-                      <div className="mt-6 flex justify-center">
-                        <PrimaryButton
-                          className="bg-[#318EFF] hover:bg-[#1F73E6]"
-                          onClick={() => handleContactOwner(selected)}
-                        >
-                          Contact Owner
-                        </PrimaryButton>
-                      </div>
-                    )}
+                    <div className="mt-6 flex flex-col gap-3">
+                      {(selected.status === "accepted" ||
+                        selected.status === "rejected") && (
+                        <div className="flex justify-center">
+                          <PrimaryButton
+                            className="bg-[#318EFF] hover:bg-[#1F73E6]"
+                            onClick={() => handleContactOwner(selected)}
+                          >
+                            Contact Owner
+                          </PrimaryButton>
+                        </div>
+                      )}
+                      {selected.status !== "accepted" && (
+                        <div className="flex justify-center">
+                          <PrimaryButton
+                            className="bg-red-500 hover:bg-red-600"
+                            onClick={() => handleDeleteRequest(selected.id)}
+                          >
+                            Delete Request
+                          </PrimaryButton>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
