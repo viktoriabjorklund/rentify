@@ -12,6 +12,7 @@ import {
   updateRequestStatus,
   deleteRequest,
 } from "../services/requestService";
+import { triggerNotificationRefresh } from "../hooks/useNotifications";
 
 type RequestStatus = "new" | "accepted" | "rejected" | "pending";
 type SubCategory = "pending" | "accepted" | "rejected";
@@ -149,6 +150,8 @@ export default function RequestsPage() {
               ) ?? []
           );
         }
+        // Trigger navbar notification refresh
+        triggerNotificationRefresh();
       } catch (err) {
         console.error("Failed to mark request as viewed:", err);
       }
@@ -170,6 +173,8 @@ export default function RequestsPage() {
               : req
           ) ?? []
       );
+      // Trigger navbar notification refresh
+      triggerNotificationRefresh();
     } catch (err) {
       console.error("Failed to accept request:", err);
       setError("Failed to accept request. Please try again.");
@@ -191,6 +196,8 @@ export default function RequestsPage() {
               : req
           ) ?? []
       );
+      // Trigger navbar notification refresh
+      triggerNotificationRefresh();
     } catch (err) {
       console.error("Failed to reject request:", err);
       setError("Failed to reject request. Please try again.");

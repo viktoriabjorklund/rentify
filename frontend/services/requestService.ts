@@ -40,28 +40,28 @@ export type RequestData = {
 
 export async function createRequest(data: RequestData): Promise<BackendRequest> {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
 
     const response = await fetch(`${API_BASE_URL}/api/requests/`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Request failed');
+      throw new Error(error.message || "Request failed");
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error creating request:', error);
+    console.error("Error creating request:", error);
     throw error;
   }
 }
@@ -107,6 +107,10 @@ export async function getReceivedRequests(): Promise<BackendRequest[]> {
 }
 
 export async function markRequestAsViewed(id: number): Promise<void> {
+  if (!id || isNaN(id)) {
+    throw new Error("Invalid request ID");
+  }
+
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...authHeaders(),
@@ -126,6 +130,10 @@ export async function updateRequestStatus(
   requestId: number,
   data: { pending: boolean; accepted: boolean }
 ): Promise<BackendRequest> {
+  if (!requestId || isNaN(requestId)) {
+    throw new Error("Invalid request ID");
+  }
+
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...authHeaders(),
