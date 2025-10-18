@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import ToolList from "../components/ToolList";
 import { useAuth } from "../hooks/auth";
 import { useYourTools } from "../hooks/tools";
+import Link from "next/link";
 
 
 function SearchBar({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -89,6 +90,24 @@ export default function YourToolsPage() {
             <p className="text-gray-600">
               {query ? `No tools found for "${query}"` : "No tools available"}
             </p>
+            <Link
+              href="/createAd"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors mt-8"
+              >
+              <span>Create ad</span>
+                <svg
+                className="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+  >
+                <path d="M12 4v16M20 12H4" />
+                </svg>
+            </Link>
           </div>
         ) : (
           <ToolList tools={tools} />
