@@ -195,6 +195,8 @@ describe("A Logins and creates tools", () => {
     expect(res.body[0]).toHaveProperty("user");
     expect(res.body[0].user.username).toBe("testA@test.com");
   });
+
+
 });
 
 // --------------------------------------------------------------
@@ -215,6 +217,24 @@ describe("B Logins and requests A's tools", () => {
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
+  });
+
+  test("B fetches unique sorted cities from tools", async () => {
+    const res = await request(app)
+      .get("/api/tools/cities")
+      .set("Authorization", `Bearer ${tokenB}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThan(0);
+
+    const sorted = [...res.body].sort();
+    expect(res.body).toEqual(sorted);
+
+ 
+    expect(res.body).toEqual(
+      expect.arrayContaining(["Gothenburg"])
+    );
   });
 
   test("B requests to rent A's first tool", async () => {

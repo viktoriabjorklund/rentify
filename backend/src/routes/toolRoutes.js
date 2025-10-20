@@ -24,6 +24,6 @@ router.put(
   toolController.updateTool
 );
 router.delete("/:id", authMiddleware, toolController.deleteTool);
-router.get("/:id", authMiddleware, toolController.displayTool);
+router.get("/:id", toolController.displayTool);
 
 export default router;
