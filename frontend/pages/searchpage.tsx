@@ -1,6 +1,7 @@
 import React from "react";
 import ToolList from "../components/ToolList";
 import { useSearch, SortOption } from "../hooks/search";
+import { useAuth } from "../hooks/auth";
 
 function SortMenu({
   value,
@@ -131,6 +132,12 @@ export default function SearchPage() {
     setCategory,
     retry,
   } = useSearch();
+  const { user } = useAuth();
+
+  const visibleTools = React.useMemo(
+    () => tools.filter(t => (user ? t.user?.id !== user.id : true)),
+    [tools, user]
+  );
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
@@ -172,14 +179,14 @@ export default function SearchPage() {
             Try again
           </button>
         </div>
-      ) : tools.length === 0 ? (
+      ) : visibleTools.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600">
             {query ? `No tools found for "${query}"` : "No tools available"}
           </p>
         </div>
       ) : (
-        <ToolList tools={tools} useDynamicRoute={true} />
+        <ToolList tools={visibleTools} useDynamicRoute={true} />
       )}
     </main>
   );

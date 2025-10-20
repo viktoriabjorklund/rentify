@@ -125,7 +125,15 @@ async function changeTotal(startdate:Date, enddate:Date){
             {/* Left side of page */}
             <section className='w-1/1 pl-10'>
                 {/* Image of tool*/}
-                <img src={tool.photoURL} className='w-7/10' alt="Placeholder pic of hammer"/>
+                <div className="aspect-[18/10] w-full bg-gray-200 rounded-xl overflow-hidden">
+                  {tool.photoURL ? (
+                    <img src={tool.photoURL} alt={tool.name} className="object-cover w-full h-full" />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <span className="text-gray-400 text-sm">No image</span>
+                    </div>
+                  )}
+                </div>
               
                 {/* Title, place and price under tool*/}
                 <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6 " >
