@@ -1,8 +1,15 @@
-How to run project on your machine:
+<img width="2940" height="1591" alt="image" src="https://github.com/user-attachments/assets/d950c8f3-bd33-45c8-98cb-b2798db0d29f" />
 
-Option 1 (recommended): Use the deployed version: https://rentify-psi-roan.vercel.app/
+## How to run project on your machine:
 
-Option 2: Run with Docker:
+<b>Option 1 (recommended):</b>
+
+Use the deployed version https://rentify-psi-roan.vercel.app/
+
+<b>Option 2:</b>
+
+Run with <b>Docker.</b>
+
 Make sure you have Docker installed, then do:
 ```bash
 docker pull viktoriabjorklund/rentify-backend:latest
@@ -12,7 +19,7 @@ This will open up backend on http://localhost:8080/
 
 You need to run frontend via npm:
 ```bash
-git clone <repo-url>
+git clone git@github.com:viktoriabjorklund/rentify.git
 cd rentify
 cd frontend
 npm install
@@ -21,7 +28,7 @@ npm run dev
 This will open up frontend on http://localhost:3000/
 
 
-To run tests:
+<b>To run tests:</b>
 ```bash
 cd backend
 npm install
@@ -62,7 +69,6 @@ backend/
 ├── tests/
 │   ├── assets
 │   │   └── spike_test.jpg
-│   ├── assets
 │   ├── api.test.js
 │   ├── jest.config.js
 ├── cloudinary.js
