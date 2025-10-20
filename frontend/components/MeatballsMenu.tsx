@@ -70,7 +70,7 @@ export default function MeatballsMenu({ toolId, onDeletedRedirect }: Props) {
         className="px-2 py-1 text-2xl leading-none rounded hover:bg-gray-100"
         onClick={() => setOpen((v) => !v)}
       >
-         ⋯
+        ⋯
       </button>
 
       {open && (
@@ -111,4 +111,3 @@ export default function MeatballsMenu({ toolId, onDeletedRedirect }: Props) {
     </div>
   );
 }
-
