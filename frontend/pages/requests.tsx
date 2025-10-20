@@ -38,6 +38,7 @@ type RequestItem = {
   side: "received" | "sent";
   detailName?: string;
   viewed?: boolean;
+  toolName?: string;
 };
 
 const InboxIcon = ({
@@ -338,6 +339,7 @@ export default function RequestsPage() {
         : undefined,
       detailName: fullName(r.renter),
       viewed: r.viewed ?? false,
+      toolName: r.tool?.name || undefined,
     }));
   }
 
@@ -593,7 +595,7 @@ export default function RequestsPage() {
                     ? `You have accepted ${selected.person.name}'s request`
                     : selected.status === "rejected"
                     ? `You have rejected ${selected.person.name}'s request`
-                    : `${selected.person.name} wants to rent your hammer`}
+                    : `${selected.person.name} wants to rent your ${selected.toolName || 'tool'}`}
                 </h3>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_380px] items-center">
                   <div className="overflow-hidden rounded-2xl">
