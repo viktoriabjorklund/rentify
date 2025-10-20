@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
+import { DeleteConfirmDialog } from "./dialogs/DeleteConfirmDialog";
 
 type Props = {
   toolId: number;
@@ -10,6 +11,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function MeatballsMenu({ toolId, onDeletedRedirect }: Props) {
   const [open, setOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -18,10 +20,12 @@ export default function MeatballsMenu({ toolId, onDeletedRedirect }: Props) {
     router.push(`/editad?id=${toolId}`);
   };
 
-  const handleDelete = async () => {
-    const yes = window.confirm("Are you sure you want to delete this ad?");
-    if (!yes) return;
+  const handleDelete = () => {
+    setOpen(false);
+    setDeleteDialogOpen(true);
+  };
 
+  const confirmDelete = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("You must be logged in.");
@@ -41,7 +45,7 @@ export default function MeatballsMenu({ toolId, onDeletedRedirect }: Props) {
     } catch (e: any) {
       alert(e?.message || "Failed to delete");
     } finally {
-      setOpen(false);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -62,7 +66,7 @@ export default function MeatballsMenu({ toolId, onDeletedRedirect }: Props) {
         className="px-2 py-1 text-2xl leading-none rounded hover:bg-gray-100"
         onClick={() => setOpen((v) => !v)}
       >
-         ⋯
+        ⋯
       </button>
 
       {open && (
@@ -81,7 +85,14 @@ export default function MeatballsMenu({ toolId, onDeletedRedirect }: Props) {
           </button>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onDelete={confirmDelete}
+        itemName="this ad"
+      />
     </div>
   );
 }
-

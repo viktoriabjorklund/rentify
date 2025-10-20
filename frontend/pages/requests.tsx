@@ -5,6 +5,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import RequestTabs from "@/components/RequestTabs";
 import SubCategoryTabs from "@/components/SubCategoryTabs";
 import { ContactDialog } from "@/components/dialogs/ContactDialog";
+import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
 import {
   getReceivedRequests,
   getSentRequests,
@@ -123,6 +124,9 @@ export default function RequestsPage() {
     message: string;
   } | null>(null);
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [requestToDelete, setRequestToDelete] = useState<string | null>(null);
+
   // Set initial tab from URL query parameter
   useEffect(() => {
     if (router.query.tab === "sent") {
@@ -210,24 +214,35 @@ export default function RequestsPage() {
     }
   };
 
-  const handleDeleteRequest = async (requestId: string) => {
-    if (!confirm("Are you sure you want to delete this request?")) {
-      return;
-    }
+  const handleDeleteRequest = (requestId: string) => {
+    setRequestToDelete(requestId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteRequest = async () => {
+    if (!requestToDelete) return;
 
     try {
-      await deleteRequest(Number(requestId));
+      await deleteRequest(Number(requestToDelete));
 
       // Remove from sent requests only
-      setSentData((prev) => prev?.filter((req) => req.id !== requestId) ?? []);
+      setSentData(
+        (prev) => prev?.filter((req) => req.id !== requestToDelete) ?? []
+      );
 
       // Clear selection if deleted item was selected
-      if (selectedId === requestId) {
+      if (selectedId === requestToDelete) {
         setSelectedId(null);
       }
+
+      triggerNotificationRefresh();
+      setDeleteDialogOpen(false);
+      setRequestToDelete(null);
     } catch (err) {
       console.error("Failed to delete request:", err);
       setError("Failed to delete request. Please try again.");
+      setDeleteDialogOpen(false);
+      setRequestToDelete(null);
     }
   };
 
@@ -743,6 +758,14 @@ export default function RequestsPage() {
         onClose={() => setContactDialogOpen(false)}
         email={contactPerson?.email}
         ownerName={contactPerson?.name}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onDelete={confirmDeleteRequest}
+        itemName="this request"
       />
     </main>
   );
