@@ -41,7 +41,7 @@ export async function createRequest(req, res) {
     if (isNaN(start) || isNaN(end)) {
       return res.status(400).json({ error: "Invalid date format" });
     }
-    if (start >= end) {
+    if (start > end) {
       return res.status(400).json({ error: "End date must be after start date" });
     }
 

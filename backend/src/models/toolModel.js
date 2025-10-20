@@ -153,11 +153,9 @@ export async function getUniqueCities() {
     },
   });
 
-  // Extract unique cities from location strings
   const cities = new Set();
   tools.forEach(tool => {
     if (tool.location) {
-      // Handle both "City" and "City, Municipality" formats
       const city = tool.location.split(',')[0].trim();
       if (city) {
         cities.add(city);
