@@ -140,3 +140,30 @@ export async function findToolPublic(id) {
     },
   });
 }
+
+export async function getUniqueCities() {
+  const tools = await prisma.tool.findMany({
+    select: {
+      location: true,
+    },
+    where: {
+      location: {
+        not: null,
+      },
+    },
+  });
+
+  // Extract unique cities from location strings
+  const cities = new Set();
+  tools.forEach(tool => {
+    if (tool.location) {
+      // Handle both "City" and "City, Municipality" formats
+      const city = tool.location.split(',')[0].trim();
+      if (city) {
+        cities.add(city);
+      }
+    }
+  });
+
+  return Array.from(cities).sort();
+}

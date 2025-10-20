@@ -182,3 +182,12 @@ export async function getMyTools(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+export async function getCities(req, res) {
+  try {
+    const cities = await toolModel.getUniqueCities();
+    res.json(cities);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
