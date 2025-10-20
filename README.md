@@ -1,61 +1,75 @@
+How to run project on your machine:
+
+Option 1 (recommended): Use the deployed version: https://rentify-psi-roan.vercel.app/
+
+Option 2: Run with Docker:
+Make sure you have Docker installed, then do:
+```bash
+docker pull viktoriabjorklund/rentify-backend:latest
+docker run -p 8080:8080 viktoriabjorklund/rentify-backend:latest
+```
+This will open up backend on http://localhost:8080/
+
+You need to run frontend via npm:
 ```bash
 git clone <repo-url>
 cd rentify
+cd frontend
+npm install
+npm run dev
+```
+This will open up frontend on http://localhost:3000/
+
+
+To run tests:
+```bash
 cd backend
 npm install
-cd ../frontend
-npm install
+npm run test
 ```
 
-Om du inte har postgresql:
-
-```bash
-cd ../backend
-brew install postgresql@14
-brew services start postgresql@14
-```
-
-Skapa sedan en databas (från backend mappen):
-```bash
-createdb rentify
+## 🏗️ Backend Architecture
 
 ```
-Skapa filen backend/.env med detta innehåll:
-
-```bash
-DATABASE_URL="postgresql://<användare>@localhost:5432/rentify"
-JWT_SECRET="hemligt-super-lösenord"
-```
-
-Sedan kör du första migrationen:
-```bash
-npx prisma migrate dev --name init
-```
-
-För att öppna databasen visuellt kan du köra från backend mappen:
-```bash
-npx prisma studio
-```
-Starta backend inuti backend mappen med 
-```bash
-npm run dev
-```
-Nu körs backend på port
-//localhost:8080
-
-Starta frontend inuti frontend mappen med 
-```bash
-npm run dev
-```
-Nu körs frontend på port
-//localhost:3000
-
-Ändringar i databasen:
-
-När du har ändrat något i databasen (schema.prisma) behöver du köra en 
-
-```bash
-npx prisma migrate dev --name <beskrivande namn på ändringen>
+backend/
+├── prisma/                 
+│   ├── schema.prisma       
+│   └── schema.test.prisma  
+│   └── migrations          
+│   └── test.db             
+├── src/            
+│   ├── controllers
+│   │   └── bookingController.js
+│   │   └── requestController.js
+│   │   └── toolController.js 
+│   │   └── userController.js 
+│   └── generated/prisma 
+│   └── middleware
+│   │   └── authMiddleware.js
+│   │   └── uploadMiddleware.js
+│   └── models
+│   │   └── bookingModel.js
+│   │   └── requestModel.js
+│   │   └── toolModel.js
+│   │   └── userModel.js
+│   └── routes
+│   │   └── bookingRoutes.js
+│   │   └── requestRoutes.js
+│   │   └── toolRoutes.js
+│   │   └── userRoutes.js
+│   └── prismaClient.js
+│   ├── server.js
+├── tests/
+│   ├── assets
+│   │   └── spike_test.jpg
+│   ├── assets
+│   ├── api.test.js
+│   ├── jest.config.js
+├── cloudinary.js
+├── docker-compose.yaml
+├── Dockerfile
+├── package-lock.json
+├── package.json
 ```
 
 ## 🏗️ Frontend Architecture (MVVM)

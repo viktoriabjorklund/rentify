@@ -111,6 +111,18 @@ export function removeToken(): void {
   }
 }
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const [, payload] = token.split(".");
+    const decoded = JSON.parse(atob(payload));
+    const now = Math.floor(Date.now() / 1000);
+    return decoded.exp < now;
+  } catch (err) {
+    console.error("Error decoding token", err);
+    return true; // behandla som ogiltig om något går fel
+  }
+}
+
 export function useAuth() {
   const [user, setUser] = useState<ReturnType<typeof getStoredUser> | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -121,11 +133,12 @@ export function useAuth() {
     const storedUser = getStoredUser();
     const storedToken = getStoredToken();
 
-    if (storedUser && storedToken) {
+    if (storedToken && !isTokenExpired(storedToken) && storedUser) {
       setUser(storedUser);
       setToken(storedToken);
       setIsAuthenticated(true);
     } else {
+      removeToken();
       setUser(null);
       setToken(null);
       setIsAuthenticated(false);

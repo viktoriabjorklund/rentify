@@ -206,16 +206,11 @@ export async function deleteTool(id: number): Promise<void> {
 
 export async function displayTool(id: number): Promise<Tool> {
   try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("No authentication token found");
-    }
 
     const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
     });
 
