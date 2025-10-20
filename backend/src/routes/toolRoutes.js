@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get("/", toolController.getTools);
 router.get("/search", toolController.searchTools);
+router.get("/cities", toolController.getCities);
 
 router.post(
   "/",

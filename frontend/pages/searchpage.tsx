@@ -1,6 +1,7 @@
 import React from "react";
 import ToolList from "../components/ToolList";
 import { useSearch, SortOption } from "../hooks/search";
+import { useCities } from "../hooks/search/useCities";
 
 function SortMenu({
   value,
@@ -89,6 +90,50 @@ function CategoryMenu({
   );
 }
 
+function CityMenu({
+  value,
+  onChange,
+  cities,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  cities: string[];
+}) {
+  // Function to get display name for city
+  const getCityDisplayName = (city: string) => {
+    if (city === "all") return "All Cities";
+    return city || "All Cities";
+  };
+
+  return (
+    <div className="relative inline-flex">
+      <button
+        type="button"
+        className="inline-flex items-center gap-2 rounded-full bg-[#2FA86E] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#27935F] focus:outline-none focus-visible:ring-2"
+        style={{ "--tw-ring-color": "#2FA86E" } as React.CSSProperties}
+        aria-haspopup="listbox"
+        aria-expanded="false"
+      >
+        {getCityDisplayName(value)} <span className="text-xs">▼</span>
+      </button>
+      {/* Simple popover-less select for now — keep API stable */}
+      <select
+        aria-label="City options"
+        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="all">All Cities</option>
+        {cities.map((city) => (
+          <option key={city} value={city}>
+            {city}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function SearchBar({
   value,
   onChange,
@@ -123,14 +168,18 @@ export default function SearchPage() {
     query,
     sort,
     category,
+    city,
     tools,
     loading,
     error,
     setQuery,
     setSort,
     setCategory,
+    setCity,
     retry,
   } = useSearch();
+
+  const { cities, loading: citiesLoading } = useCities();
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
@@ -149,6 +198,11 @@ export default function SearchPage() {
           <div className="flex gap-2">
             <SortMenu value={sort} onChange={setSort} />
             <CategoryMenu value={category} onChange={setCategory} />
+            <CityMenu 
+              value={city} 
+              onChange={setCity} 
+              cities={cities}
+            />
           </div>
           <div className="flex-1 max-w-xl mx-4">
             <SearchBar value={query} onChange={setQuery} />

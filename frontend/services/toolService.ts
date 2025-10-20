@@ -231,5 +231,26 @@ export async function displayTool(id: number): Promise<Tool> {
   }
 }
 
+export async function getCities(): Promise<string[]> {
+  try {
+    const response = await fetch(`${API_URL}/api/tools/cities`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch cities: ${response.statusText}`);
+    }
+
+    const cities = await response.json();
+    return cities;
+  } catch (error) {
+    console.error("Error fetching cities:", error);
+    throw error;
+  }
+}
+
 // Default tool image URL - you can change this to any image you prefer
 export const DEFAULT_TOOL_IMAGE = "";
