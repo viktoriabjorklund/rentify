@@ -28,7 +28,9 @@ export default function TooldetailsPage(){
     const [tool, setTool] = React.useState<Tool | null >(null);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null >(null);
-    const [totalDays, setTotalDays] = React.useState(0)
+    const [totalDays, setTotalDays] = React.useState(0);
+    const [redirecting, setRedirecting] = React.useState(false);
+
     
     // Use ViewModel hook for request submission
     const { submitRequest, submitting, error: submitError } = useRequestSubmit();
@@ -58,60 +60,55 @@ export default function TooldetailsPage(){
         </main>
       );
     }
+
+    if (redirecting) {
+      return (
+        <main className="flex flex-col items-center justify-center h-screen">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+          <p className="text-gray-600 mt-2">Redirecting to login...</p>
+        </main>
+      );
+    }
+    
     if (error || submitError) return <p className='text-red-600'>Error: {error || submitError}</p>
     if (!tool) return <p>No tool found</p>
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-  
-    // Show loading while checking authentication
-    if (authLoading) {
-      return (
-        <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
-          <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-          </div>
-        </main>
-      );
-    }
-  
-    // Don't render anything if not authenticated (redirect will happen)
-    if (!isAuthenticated) {
-      return (
-        <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 md:px-6 lg:px-8">
-          <div className="text-center py-8">
-            <p className="text-gray-600">Redirecting to login...</p>
-          </div>
-        </main>
-      );
-    }
-
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
+    async function onSubmit(e: React.FormEvent) {
+      e.preventDefault();
+    
+      if (authLoading) {
+        // Visa loader via state istället
+        console.log("Auth is still loading...");
+        return;
+      }
+    
+      if (!isAuthenticated) {
+        setRedirecting(true);
+        setTimeout(() => router.push("/login"), 500);
+        return;
+      }
+    
+      if (!tool) {
+        console.info("No tool found");
+        return;
+      }
+    
+      if (user && tool.user && user.id === tool.user.id) {
+        alert("You cannot send a rental request to your own tool!");
+        return;
+      }
+      
+    
+      await submitRequest({
+        startDate: getItem("startdate") || new Date(),
+        endDate: getItem("enddate") || new Date(),
+        toolId: tool.id,
+        price: tool.price,
+        pending: true,
+        accepted: false,
+      });
     }
     
-    if (!tool) {
-      console.info("No tool");
-      return;
-    }
-
-    // Prevent users from sending requests to their own tools
-    if (user && tool.user && user.id === tool.user.id) {
-      alert("You cannot send a rental request to your own tool!");
-      return;
-    }
-    
-    // Use ViewModel hook - handles API call, confetti, and navigation
-    await submitRequest({ 
-      startDate: getItem("startdate") || new Date(), 
-      endDate: getItem("enddate") || new Date(), 
-      toolId: tool.id, 
-      price: tool.price, 
-      pending: true, 
-      accepted: false 
-    });
-  }
 
 async function changeTotal(startdate:Date, enddate:Date){
       setTotalDays((enddate.getDate()-startdate.getDate())+(enddate.getMonth()-startdate.getMonth()) + (enddate.getFullYear()-startdate.getFullYear()))
