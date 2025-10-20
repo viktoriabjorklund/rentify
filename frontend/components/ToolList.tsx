@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { Tool } from "../services/toolService";
 import { useAuth } from "../hooks/auth"; 
 
@@ -10,6 +11,7 @@ type ToolListProps = {
   showUser?: boolean;
   showDescription?: boolean;
   className?: string;
+  useDynamicRoute?: boolean; // true for /{id}, false for /detailview?id={id}
 };
 
 type ToolCardProps = {
@@ -52,13 +54,34 @@ function ToolCard({ tool, showUser = false, showDescription = false }: ToolCardP
   );
 }
 
-export default function ToolList({
-  tools,
-  showUser = false,
-  showDescription = false,
+export default function ToolList({ 
+  tools, 
+  showUser = false, 
+  showDescription = false, 
   className = "",
+  useDynamicRoute = false
 }: ToolListProps) {
-  const { user } = useAuth(); 
+  const router = useRouter();
+  const { user } = useAuth();
+  const [loading, setLoading] = React.useState(false);
+
+  const handleNavigate = (id: number) => {
+    setLoading(true);
+    if (useDynamicRoute) {
+      router.push(`/${id}`);
+    } else {
+      router.push(`/detailview?id=${id}`);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+        <p className="text-gray-600 mt-2">Loading tool...</p>
+      </div>
+    );
+  }
 
   if (tools.length === 0) {
     return (
@@ -76,6 +99,20 @@ export default function ToolList({
       {tools.map((tool) => {
         const ownerId = tool.user?.id ?? (tool as any).userId; 
         const isOwner = !!user && ownerId === user.id;
+
+        // Use dynamic route logic if specified, otherwise use owner-based navigation
+        if (useDynamicRoute) {
+          return (
+            <div
+              key={tool.id}
+              onClick={() => handleNavigate(tool.id)}
+              className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 hover:shadow-md transition cursor-pointer"
+              aria-label={`Open ${tool.name}`}
+            >
+              <ToolCard tool={tool} showUser={showUser} showDescription={showDescription} />
+            </div>
+          );
+        }
 
         const href = isOwner
           ? { pathname: "/detailview", query: { id: tool.id } }

@@ -186,7 +186,7 @@ export default function SearchPage() {
           </p>
         </div>
       ) : (
-        <ToolList tools={visibleTools} />
+        <ToolList tools={visibleTools} useDynamicRoute={true} />
       )}
     </main>
   );

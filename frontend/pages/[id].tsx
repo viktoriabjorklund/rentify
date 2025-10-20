@@ -20,7 +20,7 @@ export function getItem(key: string) {
 }
 
 export default function TooldetailsPage(){
-    const { isLoading: authLoading, isAuthenticated } = useAuth();
+    const { isLoading: authLoading, isAuthenticated, user } = useAuth();
     const router = useRouter();  
     const { id } = router.query;
     const [firstLoad, setFirstLoad] = React.useState(true)
@@ -95,6 +95,12 @@ export default function TooldetailsPage(){
       console.info("No tool");
       return;
     }
+
+    // Prevent users from sending requests to their own tools
+    if (user && tool.user && user.id === tool.user.id) {
+      alert("You cannot send a rental request to your own tool!");
+      return;
+    }
     
     // Use ViewModel hook - handles API call, confetti, and navigation
     await submitRequest({ 
@@ -163,26 +169,55 @@ async function changeTotal(startdate:Date, enddate:Date){
 
             {/* Right side of page */}
             <section className='pl-10' style={{alignItems:'last-baseline'}}>
-              <Calendar calendarSize={400} bookings={[]} />
-          
-              <div className='content-center ml-5 pl-25 table table-full'>
-                  <p className='text-lg pb-2 pl-5 pr-5 table-cell border-b border-gray-400'>{"Total price: "+ ((totalDays+1)*tool.price)}</p>
-              </div>
-
-              {/* Submit */}
-                <div className="content-center p-3 ml-[7.3rem]">
-                  <PrimaryButton type="submit" disabled={submitting} size="md" onClick={onSubmit}>
-                    {submitting ? (
-                      <span className="flex items-center gap-2">
-                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Sending Request...
-                      </span>
-                    ) : 'Send Request'}
-                  </PrimaryButton>
+              {/* Show message for own tools */}
+              {user && tool.user && user.id === tool.user.id ? (
+                <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="mb-4">
+                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">This is your own tool</h3>
+                  <p className="text-gray-500 text-sm mb-4">You cannot rent your own tools. To manage this listing, use the menu options above.</p>
+                  <a 
+                    href="/yourtools" 
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#3A7858] text-white rounded-lg hover:bg-[#2d5f45] transition-colors text-sm font-medium"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Go to My ads
+                  </a>
                 </div>
+              ) : (
+                <>
+                  <Calendar calendarSize={400} bookings={[]} />
+              
+                  <div className='content-center ml-5 pl-25 table table-full'>
+                      <p className='text-lg pb-2 pl-5 pr-5 table-cell border-b border-gray-400'>{"Total price: "+ ((totalDays+1)*tool.price)}</p>
+                  </div>
+
+                  {/* Submit */}
+                  <div className="content-center p-3 ml-[7.3rem]">
+                    <PrimaryButton 
+                      type="submit" 
+                      disabled={submitting} 
+                      size="md" 
+                      onClick={onSubmit}
+                    >
+                      {submitting ? (
+                        <span className="flex items-center gap-2">
+                          <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Sending Request...
+                        </span>
+                      ) : 'Send Request'}
+                    </PrimaryButton>
+                  </div>
+                </>
+              )}
             </section>
           </div>
 
