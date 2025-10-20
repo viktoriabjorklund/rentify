@@ -2,6 +2,7 @@ import React from "react";
 import ToolList from "../components/ToolList";
 import { useSearch, SortOption } from "../hooks/search";
 import { useCities } from "../hooks/search/useCities";
+import { useAuth } from "../hooks/auth";
 
 function SortMenu({
   value,
@@ -178,6 +179,12 @@ export default function SearchPage() {
     setCity,
     retry,
   } = useSearch();
+  const { user } = useAuth();
+
+  const visibleTools = React.useMemo(
+    () => tools.filter(t => (user ? t.user?.id !== user.id : true)),
+    [tools, user]
+  );
 
   const { cities, loading: citiesLoading } = useCities();
 
@@ -226,14 +233,14 @@ export default function SearchPage() {
             Try again
           </button>
         </div>
-      ) : tools.length === 0 ? (
+      ) : visibleTools.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600">
             {query ? `No tools found for "${query}"` : "No tools available"}
           </p>
         </div>
       ) : (
-        <ToolList tools={tools} />
+        <ToolList tools={visibleTools} />
       )}
     </main>
   );

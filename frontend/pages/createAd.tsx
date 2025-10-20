@@ -207,18 +207,18 @@ export default function CreateAd() {
         <p className="text-4xl text-[#3A7858]">Create Ad</p>
 
         <div className="flex flex-col gap-12 bg-white p-8 rounded-lg">
-          <div className="flex gap-8">
+        <div className="flex gap-8 max-[853px]:flex-col max-[853px]:items-stretch">
             {/* Image Upload */}
-            <div className="basis-1/2 flex items-center justify-center">
+            <div className="basis-1/2 flex items-center justify-center max-[853px]:basis-auto max-[853px]:w-full max-[853px]:mb-6">
               <label className="cursor-pointer">
                 {preview ? (
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    className="w-84 h-64 object-cover border border-black rounded-lg"
-                  />
+                 <img
+                 src={preview}
+                 alt="Preview"
+                 className="w-84 h-64 object-cover border border-black rounded-lg max-[853px]:w-full max-[853px]:h-auto"
+               />
                 ) : (
-                  <div className="w-84 h-64 flex items-center justify-center border-2 border-dashed border-black rounded-lg bg-gray-50 hover:bg-gray-100">
+                  <div className="w-84 h-64 flex items-center justify-center border-2 border-dashed border-black rounded-lg bg-gray-50 hover:bg-gray-100 max-[853px]:w-36 max-[853px]:h-24 max-[853px]:text-xs">
                     <p>Click to upload</p>
                   </div>
                 )}
@@ -232,7 +232,7 @@ export default function CreateAd() {
             </div>
 
             {/* Form */}
-            <div className="basis-1/2 flex flex-col gap-4 p-4">
+            <div className="basis-1/2 flex flex-col gap-4 p-4 max-[853px]:basis-auto max-[853px]:w-full max-[853px]:text-xs">
               <div className="flex gap-2">
                 <p>Title:</p>
                 <input
