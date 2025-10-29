@@ -51,3 +51,16 @@ export async function getBookings(): Promise<Booking[]> {
   }
   return res.json();
 }
+
+// Function for getting dates from local storage
+export async function getItem(key: string): Promise<Date> {
+  try {
+    const item = await localStorage.getItem(key);
+    window.removeEventListener("storage", () => {});
+    if (!item) throw new Error('No date found');
+
+    return await (JSON.parse(item));
+  } catch (error) {
+    throw console.error("Error reading from localStorage", error);
+  }
+}
