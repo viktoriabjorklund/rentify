@@ -96,8 +96,10 @@ export default function Calendar({
         : clickedDate.getDate() > startDate.getDate() &&
           startDate.getDate() != currentDate.getDate() &&
           startDate.getDate() != clickedDate.getDate()
-        ? setEndDate(clickedDate)
-        : setEndDate(clickedDate);
+        ? (setEndDate(clickedDate))
+        : startDate.getMonth()<clickedDate.getMonth()&&endDate.getMonth()==clickedDate.getMonth()
+        ? (setStartDate(clickedDate), setEndDate(clickedDate))
+        : (setEndDate(clickedDate));
     }
   }
 
@@ -215,11 +217,22 @@ export default function Calendar({
                 day + 1 > startDate.getDate() &&
                   currentMonth == startDate.getMonth() &&
                   currentYear == startDate.getFullYear() &&
+                  currentMonth < endDate.getMonth() &&
+                  currentYear == endDate.getFullYear() &&
+                  "bg-emerald-500",
+                  currentMonth > startDate.getMonth() &&
+                  currentYear == startDate.getFullYear() &&
+                  day + 1 < endDate.getDate() &&
+                  currentMonth == endDate.getMonth() &&
+                  currentYear == endDate.getFullYear() &&
+                  "bg-emerald-500",
+                  day + 1 > startDate.getDate() &&
+                  currentMonth == startDate.getMonth() &&
+                  currentYear == startDate.getFullYear() &&
                   day + 1 < endDate.getDate() &&
                   currentMonth == endDate.getMonth() &&
                   currentYear == endDate.getFullYear() &&
                   "bg-emerald-500"
-                //showBookings(day+1, 0)
               )}
               onClick={() => handleDayClick(day + 1)}
             >
@@ -249,7 +262,7 @@ export default function Calendar({
             </p>
             <p className="table-cell w-[15rem] text-gray-400 p-1">
               {daysOfWeek[
-                startDate.getDay() == 0 ? 6 : startDate.getDay() - 1
+                endDate.getDay() == 0 ? 6 : endDate.getDay() - 1
               ] +
                 " " +
                 endDate.getDate() +

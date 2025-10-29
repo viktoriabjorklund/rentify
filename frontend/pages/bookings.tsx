@@ -1,20 +1,9 @@
 import * as React from "react";
 import { ContactDialog } from "@/components/dialogs/ContactDialog";
-import { getBookings, Booking } from "../services/bookingService";
+import { getBookings, Booking, getItem } from "../services/bookingService";
 import { useRouter } from "next/router";
 import { useAuth } from "../hooks/auth";
 import Calendar from "@/components/Calendar";
-
-// Function for getting dates from local storage
-export function getItem(key: string) {
-  try {
-    const item = localStorage.getItem(key);
-    window.removeEventListener("storage", () => {});
-    return item ? new Date(JSON.parse(item)) : undefined;
-  } catch (error) {
-    console.error("Error reading from localStorage", error);
-  }
-}
 
 export default function BookingsPage() {
   const router = useRouter();
@@ -31,8 +20,11 @@ export default function BookingsPage() {
     setContactDialogOpen(true);
   };
 
-  async function highlightBooking(startdate: Date, enddate: Date) {
+  async function highlightBooking(/*startdate: Date, enddate: Date*/) {
     let bookingList: number[] = [];
+    var startdate = new Date(await getItem('startdate'));
+    var enddate = new Date(await getItem('enddate'));
+
     bookings?.forEach((booking) => {
       if (
         new Date(booking.startDate).getMonth() === startdate.getMonth() &&
@@ -87,10 +79,7 @@ export default function BookingsPage() {
 
   React.useEffect(() => {
     window.addEventListener("storage", () => {
-      highlightBooking(
-        getItem("startdate") || new Date(),
-        getItem("enddate") || new Date()
-      );
+      highlightBooking();
     });
   });
 
