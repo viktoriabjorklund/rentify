@@ -111,8 +111,24 @@ export default function TooldetailsPage(){
     
 
 async function changeTotal(startdate:Date, enddate:Date){
-      setTotalDays((enddate.getDate()-startdate.getDate())+(enddate.getMonth()-startdate.getMonth()) + (enddate.getFullYear()-startdate.getFullYear()))
+    if (startdate.getMonth() == enddate.getMonth() && startdate.getFullYear()==enddate.getFullYear()){
+      setTotalDays((enddate.getDate()-startdate.getDate())+ (enddate.getFullYear()-startdate.getFullYear()))}
+    if (startdate.getMonth() < enddate.getMonth() && startdate.getFullYear()==enddate.getFullYear()){
+      const daysInMonth = new Date(startdate.getFullYear(),startdate.getMonth()+1, 0).getDate();
+      if (enddate.getMonth() - startdate.getMonth() ==1){
+      setTotalDays((daysInMonth-startdate.getDate()+enddate.getDate()))}
+      if (enddate.getMonth() - startdate.getMonth() >1){
+        var days = 0;
+        [...Array(enddate.getMonth() - startdate.getMonth()).keys()].map((key)=>{
+          if (key != 0){
+          const daysInMonth = new Date(startdate.getFullYear(),key+1, 0).getDate();
+          days += daysInMonth}
+          const daysInMonth = new Date(startdate.getFullYear(),startdate.getMonth()+1, 0).getDate();
+          setTotalDays((daysInMonth-startdate.getDate()+enddate.getDate()+days))
+        })
+      }
     }
+  }
 
   return(
       <section  style={{ alignContent:'center'}}>
